@@ -3,6 +3,7 @@ import { createStackNavigator, HeaderBackButton } from 'react-navigation';
 
 import SignInScreen from '../screens/login/SignInScreen';
 import SpotWebViewScreen from '../screens/login/SpotWebViewScreen';
+import LFMWebViewScreen from '../screens/login/LFMWebViewScreen';
 import AuthLoadingScreen from '../screens/login/AuthLoadingScreen';
 import UserInputScreen from '../screens/login/UserInputScreen';
 
@@ -10,6 +11,7 @@ export default AuthStack = createStackNavigator(
     { 
         AuthLoading: AuthLoadingScreen,
         SpotWebView: SpotWebViewScreen,
+        LFMWebView: LFMWebViewScreen,
         SignIn: SignInScreen,
         UserInput:  {
             screen: UserInputScreen,

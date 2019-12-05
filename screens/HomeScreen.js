@@ -9,12 +9,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {spotify} from '../apis/spotify';
 
-
+import URL from '../apis/URL';
 export default class HomeScreen extends React.Component {
 
   state = {
-    SPYtoken: null
+    SPYtoken: null,
+    LFMtoken: null,
+    authSkipSPYToken: null,
   }
 
   clearAll = async () => {
@@ -26,15 +29,24 @@ export default class HomeScreen extends React.Component {
     console.log("cleared")
   }
 
-  getData = async () => {
-    const authToken = await AsyncStorage.getItem('SPYauthToken');
-    const skipToken = await AsyncStorage.getItem('authSkipToken');
-    this.setState({SPYtoken: authToken || skipToken}, ()=>console.log(this.state.SPYtoken))
+  setToken = async () => {
+    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
+    const LFMauthToken = await AsyncStorage.getItem('LFMauthToken');
+    const skipToken = await AsyncStorage.getItem('authSkipSPYToken');
+
+    this.setState({
+      SPYtoken: SPYauthToken,
+      LFMtoken: LFMauthToken,
+      authSkipSPYToken: skipToken
+    })
   }
 
-  componentDidMount() {
-    this.getData();
-    //this.clearAll();
+
+  componentDidMount = async () => {
+    await this.setToken();
+    makeSPYreq(URL.SPY.user.topArtists, this.state.SPYtoken, "userTop")
+    
+  //  this.clearAll();
   }
 
   render() {

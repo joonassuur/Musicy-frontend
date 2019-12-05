@@ -19,12 +19,16 @@ class AuthLoadingScreen extends React.Component {
     _bootstrapAsync = async () => {
         const {navigate} = this.props.navigation;
 
-        const authToken = await AsyncStorage.getItem('SPYauthToken');
-        const skipToken = await AsyncStorage.getItem('authSkipToken');
+        const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
+        const LFMauthToken = await AsyncStorage.getItem('LFMauthToken')
+        const skipToken = await AsyncStorage.getItem('authSkipSPYToken');
         const IDcomplete = await AsyncStorage.getItem('IDcomplete');
 
-        if (authToken || (skipToken && IDcomplete) ) {
+        if (LFMauthToken || (skipToken && IDcomplete) ) {
           return navigate('Main')
+        }
+        if (SPYauthToken) {
+          return navigate('SpotWebView')
         }
         if (skipToken && !IDcomplete) {
           return navigate('UserInput')

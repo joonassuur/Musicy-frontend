@@ -5,8 +5,7 @@ class UserInputScreen extends React.Component {
 
 
     getData = async () => {
-        const value = await AsyncStorage.getItem('authSkipToken')
-        console.log(value)
+        const value = await AsyncStorage.getItem('authSkipSPYToken')
     }
 
     IDProcessComplete = async () => {

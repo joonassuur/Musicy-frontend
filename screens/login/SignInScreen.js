@@ -11,7 +11,7 @@ const SignInScreen = ( props ) => {
         .then( async (res) => {
             //do something with auth code
            // console.log(res.data)
-            await AsyncStorage.setItem('authSkipToken', res.data)
+            await AsyncStorage.setItem('authSkipSPYToken', res.data)
             navigate('UserInput')
         })
         .catch(e => console.log(e));
@@ -22,6 +22,10 @@ const SignInScreen = ( props ) => {
             <Button 
                 title="Log in with Spotify" 
                 onPress={ () => navigate('SpotWebView') }
+            /> 
+            <Button 
+                title="Log in with LastFM" 
+                onPress={ () => navigate('LFMWebView') }
             /> 
             <Text
                 onPress={ ()=> SPYloginSkip() }
