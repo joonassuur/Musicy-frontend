@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Image,
   Platform,
+  Button,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {spotify} from '../apis/spotify';
+import {makeSPYreq} from '../apis/spotify';
 
 import URL from '../apis/URL';
 export default class HomeScreen extends React.Component {
@@ -41,18 +42,29 @@ export default class HomeScreen extends React.Component {
     })
   }
 
+  fetchUserTop = async () => {
+    //get user's top artists/genres
+    return await makeSPYreq(URL().SPY.user.topArtists, this.state.SPYtoken, "userTop", "medium_term")    
+  }
+
+  fetchRecomArt = async () => {
+    //get related artists
+    let id = await this.fetchUserTop()
+    let recommendation = await makeSPYreq(URL(id).SPY.artist.relatedArt, this.state.SPYtoken, "relatedArt")
+    console.log(recommendation)
+  }
 
   componentDidMount = async () => {
     await this.setToken();
-    makeSPYreq(URL.SPY.user.topArtists, this.state.SPYtoken, "userTop")
-    
-  //  this.clearAll();
+/*     await this.fetchUserTop();
+ */    //this.clearAll();
   }
 
   render() {
     return (
       <View style={styles.container}>
           <Text>HomesScreen</Text>
+          <Button onPress={()=>this.fetchRecomArt()} title="Recommend me an artist"></Button>
       </View>
     );
   }
