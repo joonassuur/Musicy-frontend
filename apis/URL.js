@@ -13,7 +13,8 @@ export default URL = (id) => {
             SPY: {
                 artist: {
                     relatedArt: 'https://api.spotify.com/v1/artists/' + id + 
-                    '/related-artists'
+                    '/related-artists',
+                    albums: 'https://api.spotify.com/v1/artists/' + id + '/albums',
                 },
                 categories: {
                     baseURL: 'https://api.spotify.com/v1/browse/categories'

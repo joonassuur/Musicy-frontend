@@ -1,4 +1,3 @@
-import * as React from 'react';
 import axios from 'axios';
 
 mapTopGenres = (res, timeRange) => {
@@ -81,36 +80,47 @@ mapTopArtists = async (res, timeRange) => {
 
 //do something with the fetch response
 useRes = async (res, timeRange, type) => {
-    let relatedArtists = [],
+    let recomArtists = [],
+        recomAlbums = [],
         randomTop = null
 
-    if (type === "userTop") {
+    if (type === "fetchUserTop") {
         //let topGenres = await mapTopGenres(res, timeRange)
         //maps users top artists and returns a random value
         randomTop = await mapTopArtists(res, timeRange)
         return randomTop
     }
-    if (type === "relatedArt") {
+    if (type === "recommendArtist") {
         mapRelatedArt = async () => {
             res.data.artists.map( e=> {
-                relatedArtists.push([e.name, e.id])
+                recomArtists.push([e.name, e.id])
             })  
         }
         await mapRelatedArt()
-
         //pick & return random related artist
-        return await relatedArtists[Math.floor(Math.random() * relatedArtists.length)]
+        return recomArtists[Math.floor(Math.random() * recomArtists.length)]
+    }
+    if (type === "recommendAlbum") {
+        mapRelatedArt = async () => {
+            res.data.items.map( e=> {
+                recomAlbums.push([e.name, e.id])
+            })  
+        }
+        await mapRelatedArt()
+        //pick & return random related album
+        return recomAlbums[Math.floor(Math.random() * recomAlbums.length)]
     }
 }
 
 reqParams = (timeRange, id, type) => {
     switch (type) {
-        case "userTop":
+        case "fetchUserTop":
             return ({
                 limit: 50,
                 time_range: timeRange
             })
-        case "relatedArt":
+        case "recommendArtist":
+        case "recommendAlbum":
             return({
                 id: id
             })

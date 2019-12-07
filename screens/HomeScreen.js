@@ -44,27 +44,43 @@ export default class HomeScreen extends React.Component {
 
   fetchUserTop = async () => {
     //get user's top artists/genres
-    return await makeSPYreq(URL().SPY.user.topArtists, this.state.SPYtoken, "userTop", "medium_term")    
+    return await makeSPYreq(URL().SPY.user.topArtists, this.state.SPYtoken, "fetchUserTop", "medium_term")    
   }
 
   fetchRecomArt = async () => {
     //get related artists
     let id = await this.fetchUserTop()
-    let recommendation = await makeSPYreq(URL(id).SPY.artist.relatedArt, this.state.SPYtoken, "relatedArt")
-    console.log(recommendation)
+    let artist = await makeSPYreq(URL(id).SPY.artist.relatedArt, this.state.SPYtoken, "recommendArtist")
+    return artist
+  }
+
+  fetchRecomAlbum = async () => {
+    //get recommended albums
+    let id = await this.fetchRecomArt()
+    let album = await makeSPYreq(URL(id[1]).SPY.artist.albums, this.state.SPYtoken, "recommendAlbum")
+    return album;
+  }
+
+  displayRecommendation = async (type) => {
+    if (type === "artist") {
+      console.log(await this.fetchRecomArt())
+    }
+    if (type === "album") {
+      console.log(await this.fetchRecomAlbum())
+    }
   }
 
   componentDidMount = async () => {
     await this.setToken();
-/*     await this.fetchUserTop();
- */    //this.clearAll();
+    //this.clearAll();
   }
 
   render() {
     return (
       <View style={styles.container}>
           <Text>HomesScreen</Text>
-          <Button onPress={()=>this.fetchRecomArt()} title="Recommend me an artist"></Button>
+          <Button onPress={()=>this.displayRecommendation("artist")} title="Recommend me an artist"></Button>
+          <Button onPress={()=>this.displayRecommendation("album")} title="Recommend me an album"></Button>
       </View>
     );
   }
