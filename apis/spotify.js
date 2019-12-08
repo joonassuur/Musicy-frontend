@@ -4,6 +4,14 @@ mapTopGenres = (res, timeRange) => {
     let midTermGenrePref = [],
         longTermGenrePref = []
 
+    //add genres to array
+    res.data.items.map( (e) => {
+        e.genres.map( (i) => {
+            if (i.length > 0)
+            timeRange === "medium_term" ? midTermGenrePref.push(i) : longTermGenrePref.push(i)
+        })
+    })
+
     sortTopGenres = (arr, timeRange) => {
 
         let countGenres = arr.reduce( (allGenres, genre) => {
@@ -32,13 +40,7 @@ mapTopGenres = (res, timeRange) => {
         //GenrePref array is ready
     }
 
-    res.data.items.map( (e) => {
-        e.genres.map( (i) => {
-            if (i.length > 0)
-            timeRange === "medium_term" ? midTermGenrePref.push(i) : longTermGenrePref.push(i)
-        })
-    })
-
+    //sort genres in arrays, by calling "sortTopGenres" function
     if (timeRange === "medium_term") 
         sortTopGenres(midTermGenrePref, "mid")
 
@@ -54,11 +56,11 @@ mapTopArtists = async (res, timeRange) => {
     mapArtistsToArray = async () => {
         res.data.items.map(e => {
             if (timeRange === "medium_term") {
-                midTermArtistPref.push(e.id)
+                midTermArtistPref.push([e.name, e.id])
             }
                 
             if (timeRange === "long_term") {
-                longTermArtistPref.push(e.id)
+                longTermArtistPref.push([e.name, e.id])
             }   
         })
     }
@@ -84,30 +86,31 @@ useRes = async (res, timeRange, type) => {
         recomAlbums = [],
         randomTop = null
 
-    if (type === "fetchUserTop") {
-        //maps users top artists and returns a random value
-        randomTop = await mapTopArtists(res, timeRange)
-        return randomTop
-    }
-    if (type === "recommendArtist") {
-        mapRelatedArt = async () => {
-            res.data.artists.map( e=> {
-                recomArtists.push([e.name, e.id])
-            })  
-        }
-        await mapRelatedArt()
-        //pick & return random related artist
-        return recomArtists[Math.floor(Math.random() * recomArtists.length)]
-    }
-    if (type === "recommendAlbum") {
-        mapRelatedArt = async () => {
-            res.data.items.map( e=> {
-                recomAlbums.push([e.name, e.id])
-            })  
-        }
-        await mapRelatedArt()
-        //pick & return random related album
-        return recomAlbums[Math.floor(Math.random() * recomAlbums.length)]
+    switch (type) {
+        case "fetchUserTop":
+            //maps users top artists and returns a random value
+            randomTop = await mapTopArtists(res, timeRange)
+            return randomTop
+        case "recommendArtist":
+            mapRelatedArt = async () => {
+                res.data.artists.map( e=> {
+                    recomArtists.push([e.name, e.id])
+                })  
+            }
+            await mapRelatedArt()
+            //pick & return random related artist
+            return recomArtists[Math.floor(Math.random() * recomArtists.length)]
+        case "recommendAlbum":
+            mapRelatedArt = async () => {
+                res.data.items.map( e=> {
+                    recomAlbums.push([e.name, e.id])
+                })  
+            }
+            await mapRelatedArt()
+            //pick & return random related album
+            return recomAlbums[Math.floor(Math.random() * recomAlbums.length)]
+        default:
+            return;
     }
 }
 

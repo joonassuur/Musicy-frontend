@@ -11,8 +11,8 @@ import {
   View,
 } from 'react-native';
 import {makeSPYreq} from '../apis/spotify';
-import {SPYfetchURL} from '../apis/URL';
-
+import {makeLFMreq} from '../apis/lastfm';
+import {SPYfetchURL, LFMfetchURL} from '../apis/URL';
 export default class HomeScreen extends React.Component {
 
   state = {
@@ -53,8 +53,11 @@ export default class HomeScreen extends React.Component {
     //get related artists
     if (this.state.SPYtoken !== null) {
       let id = await this.fetchUserTop()
-      let artist = await makeSPYreq(SPYfetchURL("relatedArt", id), this.state.SPYtoken, "recommendArtist")
-      return artist
+      let SPYrecom = await makeSPYreq(SPYfetchURL("relatedArt", id[1]), this.state.SPYtoken, "recommendArtist")
+      let LFMrecom = await makeLFMreq(LFMfetchURL("relatedArt", id[0]), "recommendArtist")
+      let overall = [SPYrecom[0], LFMrecom]
+      let ranOverall = overall[Math.floor(Math.random() * overall.length)]
+      return ranOverall
     }
   }
 

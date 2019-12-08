@@ -1,17 +1,16 @@
 import axios from 'axios';
 
-useRes = async (res, type) => {
+useResp = async (res, type) => {
     let recomArtists = []
     if (type === "recommendArtist") {
         mapRelatedArt = async () => {
-            res.data.artists.map( e=> {
-                recomArtists.push([e.name, e.id])
-            })  
+            res.data.similarartists.artist.map(e=>{
+                recomArtists.push(e.name)
+            })
         }
         await mapRelatedArt()
         //pick & return random related artist
-        return recomArtists
-        //return recomArtists[Math.floor(Math.random() * recomArtists.length)]
+        return recomArtists[Math.floor(Math.random() * recomArtists.length)]
     }
 }
 
@@ -20,7 +19,7 @@ export const makeLFMreq = async (url, type) => {
     const response = await axios.get(url)
         .then(
             async (res) => {
-                return useRes(res, type)
+                return useResp(res, type)
             }
         )
         .catch((error) => {
