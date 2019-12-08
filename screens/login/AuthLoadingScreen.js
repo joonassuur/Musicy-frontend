@@ -20,11 +20,11 @@ class AuthLoadingScreen extends React.Component {
         const {navigate} = this.props.navigation;
 
         const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
-        const LFMauthToken = await AsyncStorage.getItem('LFMauthToken')
+        const LFMuser = await AsyncStorage.getItem('LFMauthToken')
         const skipToken = await AsyncStorage.getItem('authSkipSPYToken');
         const IDcomplete = await AsyncStorage.getItem('IDcomplete');
 
-        if (LFMauthToken || (skipToken && IDcomplete) ) {
+        if (LFMuser || (skipToken && IDcomplete) ) {
           return navigate('Main')
         }
         if (SPYauthToken) {

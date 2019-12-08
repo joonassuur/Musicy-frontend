@@ -85,7 +85,6 @@ useRes = async (res, timeRange, type) => {
         randomTop = null
 
     if (type === "fetchUserTop") {
-        //let topGenres = await mapTopGenres(res, timeRange)
         //maps users top artists and returns a random value
         randomTop = await mapTopArtists(res, timeRange)
         return randomTop

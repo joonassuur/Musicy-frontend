@@ -11,13 +11,13 @@ import {
   View,
 } from 'react-native';
 import {makeSPYreq} from '../apis/spotify';
+import {SPYfetchURL} from '../apis/URL';
 
-import URL from '../apis/URL';
 export default class HomeScreen extends React.Component {
 
   state = {
     SPYtoken: null,
-    LFMtoken: null,
+    LFMuser: null,
     authSkipSPYToken: null,
   }
 
@@ -32,33 +32,39 @@ export default class HomeScreen extends React.Component {
 
   setToken = async () => {
     const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
-    const LFMauthToken = await AsyncStorage.getItem('LFMauthToken');
+    const LFMuser = await AsyncStorage.getItem('LFMuser');
     const skipToken = await AsyncStorage.getItem('authSkipSPYToken');
 
     this.setState({
       SPYtoken: SPYauthToken,
-      LFMtoken: LFMauthToken,
+      LFMuser: LFMuser,
       authSkipSPYToken: skipToken
     })
   }
 
   fetchUserTop = async () => {
     //get user's top artists/genres
-    return await makeSPYreq(URL().SPY.user.topArtists, this.state.SPYtoken, "fetchUserTop", "medium_term")    
+    if (this.state.SPYtoken !== null) {
+      return await makeSPYreq(SPYfetchURL("user"), this.state.SPYtoken, "fetchUserTop", "medium_term")  
+    }
   }
 
   fetchRecomArt = async () => {
     //get related artists
-    let id = await this.fetchUserTop()
-    let artist = await makeSPYreq(URL(id).SPY.artist.relatedArt, this.state.SPYtoken, "recommendArtist")
-    return artist
+    if (this.state.SPYtoken !== null) {
+      let id = await this.fetchUserTop()
+      let artist = await makeSPYreq(SPYfetchURL("relatedArt", id), this.state.SPYtoken, "recommendArtist")
+      return artist
+    }
   }
 
   fetchRecomAlbum = async () => {
     //get recommended albums
-    let id = await this.fetchRecomArt()
-    let album = await makeSPYreq(URL(id[1]).SPY.artist.albums, this.state.SPYtoken, "recommendAlbum")
-    return album;
+    if (this.state.SPYtoken !== null) {
+      let id = await this.fetchRecomArt()
+      let album = await makeSPYreq(SPYfetchURL("album", id[1]), this.state.SPYtoken, "recommendAlbum")
+      return album;
+    }
   }
 
   displayRecommendation = async (type) => {

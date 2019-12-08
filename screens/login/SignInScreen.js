@@ -1,10 +1,18 @@
 import React from 'react';
-import { View, Button, Text, AsyncStorage, StyleSheet } from 'react-native';
+import { 
+    View, 
+    TextInput,
+    Button, 
+    Text, 
+    AsyncStorage, 
+    StyleSheet 
+} from 'react-native';
 import axios from 'axios';
 
 const SignInScreen = ( props ) => {
 
     const {navigate} = props.navigation
+    const [value, setState] = React.useState('');
 
     SPYloginSkip = async () => {
         axios.get('https://spot-auth-backend.herokuapp.com/login_skip')
@@ -17,16 +25,32 @@ const SignInScreen = ( props ) => {
         .catch(e => console.log(e));
     }
 
+    setLFMuser = async (user) => {
+        await AsyncStorage.setItem('LFMuser', user)
+        navigate('Main')
+    }
+
     return (
         <View style={styles.container}>
             <Button 
                 title="Log in with Spotify" 
                 onPress={ () => navigate('SpotWebView') }
             /> 
-            <Button 
-                title="Log in with LastFM" 
-                onPress={ () => navigate('LFMWebView') }
-            /> 
+            <Text>Or</Text>
+            <View style={{flexDirection: "row" }}>
+                <TextInput
+                    placeholder="Enter your LastFM username"
+                    style={{ height: 40, borderColor: 'gray', borderWidth: 1, color: "#000" }}
+                    onChangeText={text => setState(text)}
+                    value={value}
+                />
+                <Button
+                    title="Go"
+                    onPress={ () => setLFMuser(value) }
+                />
+            </View>
+
+            <Text>Or</Text>
             <Text
                 onPress={ ()=> SPYloginSkip() }
             >

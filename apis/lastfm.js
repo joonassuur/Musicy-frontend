@@ -1,19 +1,31 @@
 import axios from 'axios';
 
-const LFM_KEY = process.env.LFM_KEY;
+useRes = async (res, type) => {
+    let recomArtists = []
+    if (type === "recommendArtist") {
+        mapRelatedArt = async () => {
+            res.data.artists.map( e=> {
+                recomArtists.push([e.name, e.id])
+            })  
+        }
+        await mapRelatedArt()
+        //pick & return random related artist
+        return recomArtists
+        //return recomArtists[Math.floor(Math.random() * recomArtists.length)]
+    }
+}
 
-export default (url, term) => {
-
-    axios.get(URL.LFM.artist.related + term + LFM_KEY)
-        .then(function (response) {
-            // handle success
-            console.log(response);
-        })
-        .catch(function (error) {
-            // handle error
+export const makeLFMreq = async (url, type) => {
+    
+    const response = await axios.get(url)
+        .then(
+            async (res) => {
+                return useRes(res, type)
+            }
+        )
+        .catch((error) => {
             console.log(error);
         })
-        .finally(function () {
-            // always executed
-        });
+    
+    return response
 }
