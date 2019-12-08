@@ -81,10 +81,11 @@ mapTopArtists = async (res, timeRange) => {
 }
 
 //do something with the fetch response
-useRes = async (res, timeRange, type) => {
+useRes = async (res, timeRange, type, id) => {
     let recomArtists = [],
         recomAlbums = [],
         randomTop = null
+        searchResult = [];
 
     switch (type) {
         case "fetchUserTop":
@@ -109,29 +110,40 @@ useRes = async (res, timeRange, type) => {
             await mapRelatedArt()
             //pick & return random related album
             return recomAlbums[Math.floor(Math.random() * recomAlbums.length)]
+        case "search":
+            //search spotify for an artist
+            searchSPY = async () => {
+                res.data.artists.items.map( e=> {
+                    if(e.name.toLowerCase() === id.toLowerCase()) {
+                        searchResult = [e.name, e.id]
+                    }
+                })
+            } 
+            await searchSPY()
+            return searchResult
         default:
             return;
     }
 }
 
-reqParams = (timeRange, id, type) => {
+reqParams = (timeRange, type, id) => {
     switch (type) {
         case "fetchUserTop":
             return ({
-                limit: 50,
+                limit: 30,
                 time_range: timeRange
             })
-        case "recommendArtist":
-        case "recommendAlbum":
+        case "search":
             return({
-                id: id
+                q: id,
+                type: "artist"
             })
         default:
             return undefined
     }
 }
 
-export const makeSPYreq = async (url, token, type, timeRange) => {
+export const makeSPYreq = async (url, token, type, timeRange, id) => {
     
     timeRange = timeRange || "medium_term"
 
@@ -140,11 +152,11 @@ export const makeSPYreq = async (url, token, type, timeRange) => {
             headers: {
                 Authorization: `Bearer ${token}`
             },
-            params: reqParams(timeRange, type)
+            params: reqParams(timeRange, type, id)
         })
         .then(
             async (res) => {
-                return useRes(res, timeRange, type)
+                return useRes(res, timeRange, type, id)
             }
         )
         .catch((error) => {

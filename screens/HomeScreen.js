@@ -31,9 +31,9 @@ export default class HomeScreen extends React.Component {
   }
 
   setToken = async () => {
-    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
-    const LFMuser = await AsyncStorage.getItem('LFMuser');
-    const skipToken = await AsyncStorage.getItem('authSkipSPYToken');
+    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken'),
+          LFMuser = await AsyncStorage.getItem('LFMuser'),
+          skipToken = await AsyncStorage.getItem('authSkipSPYToken');
 
     this.setState({
       SPYtoken: SPYauthToken,
@@ -52,20 +52,21 @@ export default class HomeScreen extends React.Component {
   fetchRecomArt = async () => {
     //get related artists
     if (this.state.SPYtoken !== null) {
-      let id = await this.fetchUserTop()
-      let SPYrecom = await makeSPYreq(SPYfetchURL("relatedArt", id[1]), this.state.SPYtoken, "recommendArtist")
-      let LFMrecom = await makeLFMreq(LFMfetchURL("relatedArt", id[0]), "recommendArtist")
-      let overall = [SPYrecom[0], LFMrecom]
-      let ranOverall = overall[Math.floor(Math.random() * overall.length)]
-      return ranOverall
+      let id = await this.fetchUserTop(),
+          SPYrecom = await makeSPYreq(SPYfetchURL("relatedArt", id[1]), this.state.SPYtoken, "recommendArtist"),
+          LFMrecom = await makeLFMreq(LFMfetchURL("relatedArt", id[0]), "recommendArtist"),
+          overall = [SPYrecom[0], LFMrecom],
+          ranOverall = overall[Math.floor(Math.random() * overall.length)];
+      let final = await makeSPYreq(SPYfetchURL("search"), this.state.SPYtoken, "search", undefined, ranOverall);
+      return final
     }
   }
 
   fetchRecomAlbum = async () => {
     //get recommended albums
     if (this.state.SPYtoken !== null) {
-      let id = await this.fetchRecomArt()
-      let album = await makeSPYreq(SPYfetchURL("album", id[1]), this.state.SPYtoken, "recommendAlbum")
+      let id = await this.fetchRecomArt(),
+          album = await makeSPYreq(SPYfetchURL("album", id[1]), this.state.SPYtoken, "recommendAlbum");
       return album;
     }
   }

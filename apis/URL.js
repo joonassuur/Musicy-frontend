@@ -43,6 +43,8 @@ export const SPYfetchURL = (type, id) => {
         return SPYURL(id).artist.related
       case "album":
         return SPYURL(id).artist.albums
+      case "search":
+        return SPYURL().search.baseURL
       default:
         return undefined
     }
