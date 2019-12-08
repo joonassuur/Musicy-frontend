@@ -111,12 +111,13 @@ useRes = async (res, timeRange, type, id) => {
             //pick & return random related album
             return recomAlbums[Math.floor(Math.random() * recomAlbums.length)]
         case "search":
+            console.log("searching...")
             //search spotify for an artist
             searchSPY = async () => {
                 res.data.artists.items.map( e=> {
                     if(e.name.toLowerCase() === id.toLowerCase()) {
                         searchResult = [e.name, e.id]
-                    }
+                    } 
                 })
             } 
             await searchSPY()
@@ -160,7 +161,7 @@ export const makeSPYreq = async (url, token, type, timeRange, id) => {
             }
         )
         .catch((error) => {
-            console.log(error);
+            console.log("spotify error: "+error);
         })
     
     return response

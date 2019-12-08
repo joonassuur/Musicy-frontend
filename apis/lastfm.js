@@ -23,7 +23,7 @@ export const makeLFMreq = async (url, type) => {
             }
         )
         .catch((error) => {
-            console.log(error);
+            console.log("LFM error: "+error);
         })
     
     return response

@@ -57,6 +57,7 @@ export default class HomeScreen extends React.Component {
           LFMrecom = await makeLFMreq(LFMfetchURL("relatedArt", id[0]), "recommendArtist"),
           overall = [SPYrecom[0], LFMrecom],
           ranOverall = overall[Math.floor(Math.random() * overall.length)];
+      console.log("overall:"+overall)
       let final = await makeSPYreq(SPYfetchURL("search"), this.state.SPYtoken, "search", undefined, ranOverall);
       return final
     }
@@ -73,7 +74,16 @@ export default class HomeScreen extends React.Component {
 
   displayRecommendation = async (type) => {
     if (type === "artist") {
-      console.log(await this.fetchRecomArt())
+      let result = await this.fetchRecomArt()
+
+      if (result !== undefined && result.length>0) {
+        console.log(result)
+        return;
+      } else {
+        console.log("again")
+        this.displayRecommendation("artist")
+      }
+      
     }
     if (type === "album") {
       console.log(await this.fetchRecomAlbum())
