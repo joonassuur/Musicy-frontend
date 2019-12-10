@@ -42,52 +42,87 @@ export default class HomeScreen extends React.Component {
     })
   }
 
-  fetchUserTop = async () => {
-    //get user's top artists/genres
+  fetchUserTop = async (timeRange) => {
+    //get user's top artists/genres from Spotify
     if (this.state.SPYtoken !== null) {
-      return await makeSPYreq(SPYfetchURL("user"), this.state.SPYtoken, "fetchUserTop", "medium_term")  
+      return await makeSPYreq({
+        url: SPYfetchURL("user"), 
+        type: "fetchUserTop",
+        timeRange: timeRange || "medium_term"
+      })  
     }
   }
 
-  fetchRecomArt = async () => {
-    //get related artists
-    if (this.state.SPYtoken !== null) {
-      let id = await this.fetchUserTop(),
-          SPYrecom = await makeSPYreq(SPYfetchURL("relatedArt", id[1]), this.state.SPYtoken, "recommendArtist"),
-          LFMrecom = await makeLFMreq(LFMfetchURL("relatedArt", id[0]), "recommendArtist"),
-          overall = [SPYrecom[0], LFMrecom],
-          ranOverall = overall[Math.floor(Math.random() * overall.length)];
-      console.log("overall:"+overall)
-      let final = await makeSPYreq(SPYfetchURL("search"), this.state.SPYtoken, "search", undefined, ranOverall);
-      return final
-    }
+  fetchRecomArt = async (discoverNew, timeRange) => {
+    //get related artists based on user's Spotify top played artists
+    let userTopArr = await this.fetchUserTop(timeRange),
+        //grab random value from user's Spotify top played
+        ranID = userTopArr[Math.floor(Math.random() * userTopArr.length)]
+        //make "similar artists" requests to both Spotify and LFM based on above value. 
+        //Both return one random value that is not in users current top played for given period.
+        SPYrecom = await makeSPYreq({
+          url: SPYfetchURL("rltdArt", ranID[1]), 
+          type: "recommendArtist", 
+          arr: userTopArr,
+          discoverNew: discoverNew
+        }),
+        LFMrecom = await makeLFMreq({
+          url: LFMfetchURL("rltdArt", ranID[0]), 
+          type: "recommendArtist", 
+          arr: userTopArr,
+          discoverNew: discoverNew
+        }),
+        //returned values from both Spotify and LFM
+        overall = [SPYrecom[0], LFMrecom],
+        ranOverall = overall[Math.floor(Math.random() * overall.length)],
+        //Pick randomly either Spotify or LFM recommendation and return it. 
+        //If picked value is from LFM and spotify does not have the given artist, the script will run again
+        final = await makeSPYreq({
+          url: SPYfetchURL("search"), 
+          type: "search", 
+          searchTerm: ranOverall
+        });
+
+        console.log("overall:"+overall)
+        console.log("ranOverall:"+ranOverall)
+    return final
   }
 
-  fetchRecomAlbum = async () => {
+  fetchRecomAlbum = async (discoverNew, timeRange) => {
     //get recommended albums
     if (this.state.SPYtoken !== null) {
-      let id = await this.fetchRecomArt(),
-          album = await makeSPYreq(SPYfetchURL("album", id[1]), this.state.SPYtoken, "recommendAlbum");
+      let id = await this.fetchRecomArt(discoverNew, timeRange),
+          album = await makeSPYreq({
+            url: SPYfetchURL("album", id[1]), 
+            type: "recommendAlbum"
+          });
       return album;
     }
   }
 
-  displayRecommendation = async (type) => {
-    if (type === "artist") {
-      let result = await this.fetchRecomArt()
+  fetchRec = async (arg) => {
+    arg = {
+      discoverNew: arg.discoverNew || true,
+      timeRange: arg.timeRange || "medium_term",
+      type: arg.type || "artist",
+      genre: arg.genre || undefined
+    }
 
-      if (result !== undefined && result.length>0) {
-        console.log(result)
-        return;
-      } else {
-        console.log("again")
-        this.displayRecommendation("artist")
-      }
-      
-    }
-    if (type === "album") {
-      console.log(await this.fetchRecomAlbum())
-    }
+    let result = (arg.type === "artist" ? 
+                  await this.fetchRecomArt(arg.discoverNew, arg.timeRange) :
+                  await this.fetchRecomAlbum(arg.discoverNew, arg.timeRange)
+    )
+
+    if ( result !== undefined && result.length > 0 ) {
+      console.log("result" + result)
+      return;
+    } 
+
+    console.log("again..")
+    console.log("arg:")
+    console.log(arg)
+    this.fetchRec(arg)
+    
   }
 
   componentDidMount = async () => {
@@ -99,8 +134,15 @@ export default class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
           <Text>HomesScreen</Text>
-          <Button onPress={()=>this.displayRecommendation("artist")} title="Recommend me an artist"></Button>
-          <Button onPress={()=>this.displayRecommendation("album")} title="Recommend me an album"></Button>
+          <Button onPress={()=>this.fetchRec({type: "artist"})} title="Recommend me an artist"/>
+          <Button onPress={()=>this.fetchRec({type: "album"})} title="Recommend me an album"/>
+          <Button onPress={
+            ()=>this.fetchRec({
+              discoverNew: false,  
+              timeRange: "short_term"}
+            )} 
+            title="Recommend me something familiar"
+          />
       </View>
     );
   }

@@ -39,7 +39,7 @@ export const SPYfetchURL = (type, id) => {
     switch (type) {
       case "user":
         return SPYURL().user.topArtists
-      case "relatedArt":
+      case "rltdArt":
         return SPYURL(id).artist.related
       case "album":
         return SPYURL(id).artist.albums
@@ -52,7 +52,7 @@ export const SPYfetchURL = (type, id) => {
 
 export const LFMfetchURL = (type, id) => {
     switch (type) {
-      case "relatedArt":
+      case "rltdArt":
         return LFMURL(id).artist.related
       default:
         return undefined

@@ -1,11 +1,21 @@
 import axios from 'axios';
 
-useResp = async (res, type) => {
+useResp = async (res, type, arr, discoverNew) => {
     let recomArtists = []
     if (type === "recommendArtist") {
+        
         mapRelatedArt = async () => {
+            
             res.data.similarartists.artist.map(e=>{
-                recomArtists.push(e.name)
+                let mapUserTop = arr.map(i =>i[0].toLowerCase());
+                //push artists that are not in user's top listens to "recommended array"
+                if (discoverNew) {
+                    if (!mapUserTop.includes(e.name.toLowerCase())) {
+                        recomArtists.push(e.name)
+                    }
+                } else {
+                    recomArtists.push(e.name)
+                }
             })
         }
         await mapRelatedArt()
@@ -14,16 +24,23 @@ useResp = async (res, type) => {
     }
 }
 
-export const makeLFMreq = async (url, type) => {
-    
-    const response = await axios.get(url)
+export const makeLFMreq = async (arg) => {
+
+    arg = {
+        url: arg.url || undefined,
+        type: arg.type || undefined,
+        arr: arg.arr || undefined,
+        discoverNew: arg.discoverNew || true,
+    }
+
+    const response = await axios.get(arg.url)
         .then(
             async (res) => {
-                return useResp(res, type)
+                return useResp(res, arg.type, arg.arr, arg.discoverNew)
             }
         )
         .catch((error) => {
-            console.log("LFM error: "+error);
+            console.log("LFM error: " + error);
         })
     
     return response
