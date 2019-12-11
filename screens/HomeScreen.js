@@ -10,15 +10,20 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
+
 import {makeSPYreq} from '../apis/spotify';
 import {makeLFMreq} from '../apis/lastfm';
 import {SPYfetchURL, LFMfetchURL} from '../apis/URL';
+import {rand, log} from "../methods";
+
 export default class HomeScreen extends React.Component {
 
   state = {
     SPYtoken: null,
     LFMuser: null,
     authSkipSPYToken: null,
+    track: null
   }
 
   clearAll = async () => {
@@ -27,7 +32,7 @@ export default class HomeScreen extends React.Component {
     } catch(e) {
       // clear error
     }    
-    console.log("cleared")
+    log("cleared")
   }
 
   setToken = async () => {
@@ -48,8 +53,8 @@ export default class HomeScreen extends React.Component {
       return await makeSPYreq({
         url: SPYfetchURL("user"), 
         type: "fetchUserTop",
-        timeRange: timeRange || "medium_term"
-      })  
+        timeRange: timeRange
+      })
     }
   }
 
@@ -57,7 +62,7 @@ export default class HomeScreen extends React.Component {
     //get related artists based on user's Spotify top played artists
     let userTopArr = await this.fetchUserTop(timeRange),
         //grab random value from user's Spotify top played
-        ranID = userTopArr[Math.floor(Math.random() * userTopArr.length)]
+        ranID = rand(userTopArr)
         //make "similar artists" requests to both Spotify and LFM based on above value. 
         //Both return one random value that is not in users current top played for given period.
         SPYrecom = await makeSPYreq({
@@ -74,18 +79,18 @@ export default class HomeScreen extends React.Component {
         }),
         //returned values from both Spotify and LFM
         overall = [SPYrecom[0], LFMrecom],
-        ranOverall = overall[Math.floor(Math.random() * overall.length)],
+        ranOverall = rand(overall),
         //Pick randomly either Spotify or LFM recommendation and return it. 
         //If picked value is from LFM and spotify does not have the given artist, the script will run again
-        final = await makeSPYreq({
+        finalSPY = await makeSPYreq({
           url: SPYfetchURL("search"), 
           type: "search", 
           searchTerm: ranOverall
         });
 
-        console.log("overall:"+overall)
-        console.log("ranOverall:"+ranOverall)
-    return final
+        log("overall: "+overall)
+        log("ranOverall: "+ranOverall)
+    return finalSPY
   }
 
   fetchRecomAlbum = async (discoverNew, timeRange) => {
@@ -100,42 +105,62 @@ export default class HomeScreen extends React.Component {
     }
   }
 
+  fetchTopTracks = async (discoverNew, timeRange) => {
+    if (this.state.SPYtoken !== null) {
+      let id = await this.fetchRecomArt(discoverNew, timeRange),
+          track = await makeSPYreq({
+            url: SPYfetchURL("track", id[1]), 
+            type: "topTracks"
+          });
+      return track;
+    }
+  }
+
   fetchRec = async (arg) => {
     arg = {
+      //discoverNew = only pick among recommended artists that are not in user's top played list
       discoverNew: arg.discoverNew || true,
       timeRange: arg.timeRange || "medium_term",
       type: arg.type || "artist",
-      genre: arg.genre || undefined
+      genre: arg.genre || undefined  //not in use currently
     }
 
-    let result = (arg.type === "artist" ? 
-                  await this.fetchRecomArt(arg.discoverNew, arg.timeRange) :
-                  await this.fetchRecomAlbum(arg.discoverNew, arg.timeRange)
-    )
+    let result = undefined;
+
+    if (arg.type === "artist")
+      result = await this.fetchRecomArt(arg.discoverNew, arg.timeRange)
+
+    if (arg.type === "album")
+      result = await this.fetchRecomAlbum(arg.discoverNew, arg.timeRange)
+
+    if (arg.type === "track")
+      result = await this.fetchTopTracks(arg.discoverNew, arg.timeRange)
+
 
     if ( result !== undefined && result.length > 0 ) {
-      console.log("result" + result)
+      log("result: " + result)
+      this.setState({track: result[0]})
       return;
     } 
 
-    console.log("again..")
-    console.log("arg:")
-    console.log(arg)
+    log("again..")
     this.fetchRec(arg)
-    
   }
 
   componentDidMount = async () => {
     await this.setToken();
     //this.clearAll();
+    //await this.fetchTopTracks(arg.discoverNew, arg.timeRange)
   }
 
   render() {
+    const {track} = this.state
     return (
       <View style={styles.container}>
-          <Text>HomesScreen</Text>
+          <Text>HomeScreen</Text>
           <Button onPress={()=>this.fetchRec({type: "artist"})} title="Recommend me an artist"/>
           <Button onPress={()=>this.fetchRec({type: "album"})} title="Recommend me an album"/>
+          <Button onPress={()=>this.fetchRec({type: "track"})} title="Recommend me a track"/>
           <Button onPress={
             ()=>this.fetchRec({
               discoverNew: false,  
@@ -143,10 +168,23 @@ export default class HomeScreen extends React.Component {
             )} 
             title="Recommend me something familiar"
           />
+          
+          <Button onPress={
+            ()=>this.fetchRec({
+              discoverNew: false,  
+              timeRange: "long_term"}
+            )} 
+            title="Give surprise recommendation"
+          />
+
+
+          <WebView 
+            style={{width: 300, height: 200}}                        
+            source={{ uri: `https://www.last.fm/music/{artist}/_/${track}`}}
+          />
       </View>
     );
   }
-
 }
 
 HomeScreen.navigationOptions = {

@@ -1,10 +1,10 @@
 const SPYURL = (id) => {
     return ({
             artist: {
-                related: 'https://api.spotify.com/v1/artists/' + id + 
-                '/related-artists',
-                albums: 'https://api.spotify.com/v1/artists/' + id + '/albums',
-            },
+                related: `https://api.spotify.com/v1/artists/${id}/related-artists`,
+                albums: `https://api.spotify.com/v1/artists/${id}/albums`,
+                tracks: `https://api.spotify.com/v1/artists/${id}/top-tracks`,
+            }, 
             categories: {
                 baseURL: 'https://api.spotify.com/v1/browse/categories'
             },
@@ -20,16 +20,17 @@ const SPYURL = (id) => {
 
 const LFMURL = (id) => {
     let key = 'b4232355a2295ab443e33a52d8312d8e'
-    let userParam = `&user=${id}&api_key=${key}&format=json`
-    let artistParam = `&artist=${id}&api_key=${key}&format=json`
+    let user = `&user=${id}&api_key=${key}&format=json`
+    let artist = `&artist=${id}&api_key=${key}&format=json`
     return ({
             artist: {
-                related: 'https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar' + artistParam,
-                topTags: 'https://ws.audioscrobbler.com/2.0/?method=artist.gettoptags' + artistParam
+                related: `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar${artist}`,
+                topTags: `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptags${artist}`,
+                topTracks: `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks${artist}`,
             },
             user: {
-                topArtists: 'https://ws.audioscrobbler.com/2.0/?method=tag.gettopartists' + userParam,
-                topTags: 'https://ws.audioscrobbler.com/2.0/?method=user.gettoptags' + userParam
+                topArtists: `https://ws.audioscrobbler.com/2.0/?method=tag.gettopartists${user}`,
+                topTags: `https://ws.audioscrobbler.com/2.0/?method=user.gettoptags${user}`,
             }
         }
     )
@@ -43,6 +44,8 @@ export const SPYfetchURL = (type, id) => {
         return SPYURL(id).artist.related
       case "album":
         return SPYURL(id).artist.albums
+      case "track":
+        return SPYURL(id).artist.tracks
       case "search":
         return SPYURL().search.baseURL
       default:

@@ -1,7 +1,10 @@
 import axios from 'axios';
+import {rand} from "../methods";
 
 useResp = async (res, type, arr, discoverNew) => {
-    let recomArtists = []
+    let recomArtists = [],
+        topTracks = [];
+
     if (type === "recommendArtist") {
         
         mapRelatedArt = async () => {
@@ -20,8 +23,9 @@ useResp = async (res, type, arr, discoverNew) => {
         }
         await mapRelatedArt()
         //pick & return random related artist
-        return recomArtists[Math.floor(Math.random() * recomArtists.length)]
+        return rand(recomArtists)
     }
+
 }
 
 export const makeLFMreq = async (arg) => {

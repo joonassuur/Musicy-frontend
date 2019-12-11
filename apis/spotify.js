@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { AsyncStorage } from 'react-native';
+import {rand, log} from "../methods";
 
 mapTopGenres = (res, timeRange) => {
     let midTermGenrePref = [],
@@ -66,6 +67,7 @@ mapTopArtists = async (res) => {
 useRes = async (res, type, searchTerm, arr, discoverNew) => {
     let recomArtists = [],
         recomAlbums = [],
+        topTracks = [],
         searchResult = [];
 
     switch (type) {
@@ -89,24 +91,35 @@ useRes = async (res, type, searchTerm, arr, discoverNew) => {
                 })  
             }
             await mapRelatedArt()
-            console.log("discover " + discoverNew)
-            console.log("recomArtists:")
-            console.log(recomArtists)
+            log("discover " + discoverNew)
+            log("recomArtists:")
+            log(recomArtists)
             //pick & return random related artist
-            return recomArtists[Math.floor(Math.random() * recomArtists.length)]
+            return rand(recomArtists)
 
         case "recommendAlbum":
-            mapRelatedArt = async () => {
+            mapAlbums = async () => {
                 res.data.items.map( e=> {
                     recomAlbums.push([e.name, e.id])
                 })  
             }
-            await mapRelatedArt()
+            await mapAlbums()
             //pick & return random related album
-            return recomAlbums[Math.floor(Math.random() * recomAlbums.length)]
+            return rand(recomAlbums)
 
+        case "topTracks":
+            mapTopTracks = async () => {
+                res.data.tracks.map( e=> {
+                    if (e.is_playable) {
+                        topTracks.push([e.name, e.id])
+                    }
+                })  
+            }
+            await mapTopTracks()
+            //pick & return random top track
+            return rand(topTracks);
         case "search":
-            console.log("searching...")
+            log("searching...")
             //search spotify for an artist
             searchSPY = async () => {
                 res.data.artists.items.map( e=> {
@@ -134,6 +147,11 @@ reqParams = (timeRange, type, searchTerm) => {
             return({
                 q: searchTerm,
                 type: "artist"
+            })
+        case "recommendAlbum":
+        case "topTracks":
+            return({
+                country: "from_token"
             })
         default:
             return undefined
@@ -167,7 +185,7 @@ export const makeSPYreq = async (arg) => {
             }
         )
         .catch((error) => {
-            console.log("spotify error: " + error);
+            log("spotify error: " + error);
         })
     
     return response
