@@ -10,12 +10,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import axios from 'axios';
+import AudioPlayer from '../components/AudioPlayer';
 
 import {makeSPYreq} from '../apis/spotify';
 import {makeLFMreq} from '../apis/lastfm';
-import {SPYfetchURL, LFMfetchURL} from '../apis/URL';
-import {rand, log} from "../methods";
+import {makeYTreq} from '../apis/youtube';
+import {SPYfetchURL, LFMfetchURL, YTfetchURL} from '../apis/URL';
+import {rand, log, last, secondObj} from "../methods";
+
 
 export default class HomeScreen extends React.Component {
 
@@ -23,7 +26,13 @@ export default class HomeScreen extends React.Component {
     SPYtoken: null,
     LFMuser: null,
     authSkipSPYToken: null,
-    track: null
+
+    nowPlaying: {
+        title: null,
+        artist: null,
+        uri: null,
+        imageSource: "https://semantic-ui.com/images/wireframe/square-image.png"
+    }
   }
 
   clearAll = async () => {
@@ -49,18 +58,17 @@ export default class HomeScreen extends React.Component {
 
   fetchUserTop = async (timeRange) => {
     //get user's top artists/genres from Spotify
-    if (this.state.SPYtoken !== null) {
-      return await makeSPYreq({
-        url: SPYfetchURL("user"), 
-        type: "fetchUserTop",
-        timeRange: timeRange
-      })
-    }
+    return await makeSPYreq({
+      url: SPYfetchURL("user"), 
+      type: "fetchUserTop",
+      timeRange: timeRange
+    })
   }
 
   fetchRecomArt = async (discoverNew, timeRange) => {
     //get related artists based on user's Spotify top played artists
     let userTopArr = await this.fetchUserTop(timeRange),
+        finalSPY = undefined,
         //grab random value from user's Spotify top played
         ranID = rand(userTopArr)
         //make "similar artists" requests to both Spotify and LFM based on above value. 
@@ -79,67 +87,79 @@ export default class HomeScreen extends React.Component {
         }),
         //returned values from both Spotify and LFM
         overall = [SPYrecom[0], LFMrecom],
-        ranOverall = rand(overall),
+        ranOverall = rand(overall);
         //Pick randomly either Spotify or LFM recommendation and return it. 
         //If picked value is from LFM and spotify does not have the given artist, the script will run again
-        finalSPY = await makeSPYreq({
-          url: SPYfetchURL("search"), 
-          type: "search", 
-          searchTerm: ranOverall
-        });
-
-        log("overall: "+overall)
-        log("ranOverall: "+ranOverall)
+      
+        if (ranOverall === SPYrecom[0]) {
+          finalSPY = SPYrecom[1]
+        } else {
+          finalSPY = await makeSPYreq({
+            url: SPYfetchURL("search"), 
+            type: "search", 
+            searchTerm: ranOverall
+          });
+        }
     return finalSPY
   }
 
   fetchRecomAlbum = async (discoverNew, timeRange) => {
     //get recommended albums
-    if (this.state.SPYtoken !== null) {
-      let id = await this.fetchRecomArt(discoverNew, timeRange),
-          album = await makeSPYreq({
-            url: SPYfetchURL("album", id[1]), 
-            type: "recommendAlbum"
-          });
-      return album;
-    }
+    let id = await this.fetchRecomArt(discoverNew, timeRange),
+        album = await makeSPYreq({
+          url: SPYfetchURL("album", id), 
+          type: "recommendAlbum"
+        });
+    return album;
   }
 
   fetchTopTracks = async (discoverNew, timeRange) => {
-    if (this.state.SPYtoken !== null) {
-      let id = await this.fetchRecomArt(discoverNew, timeRange),
-          track = await makeSPYreq({
-            url: SPYfetchURL("track", id[1]), 
-            type: "topTracks"
-          });
-      return track;
-    }
+    //get top tracks
+    let id = await this.fetchRecomArt(discoverNew, timeRange),
+        track = await makeSPYreq({
+          url: SPYfetchURL("track", id), 
+          type: "topTracks"
+        });
+     
+        //assign correct image to track object
+        if (track !== undefined) {
+          track[4] = secondObj(track[4]).url  
+        }
+
+        //do something if track preview (track[3]) == null
+
+    return track;
   }
 
-  fetchRec = async (arg) => {
+  fetchRec = async (arg = {}) => {
+
+    const {SPYtoken} = this.state
+
+    this.setState({searchInProgress: true})
+
+    if (SPYtoken === null) return;
+    
     arg = {
       //discoverNew = only pick among recommended artists that are not in user's top played list
       discoverNew: arg.discoverNew || true,
       timeRange: arg.timeRange || "medium_term",
-      type: arg.type || "artist",
       genre: arg.genre || undefined  //not in use currently
-    }
+    } 
 
-    let result = undefined;
+    let track = await this.fetchTopTracks(arg.discoverNew, arg.timeRange);
 
-    if (arg.type === "artist")
-      result = await this.fetchRecomArt(arg.discoverNew, arg.timeRange)
+    if ( track !== undefined && track.length > 0 ) {
 
-    if (arg.type === "album")
-      result = await this.fetchRecomAlbum(arg.discoverNew, arg.timeRange)
-
-    if (arg.type === "track")
-      result = await this.fetchTopTracks(arg.discoverNew, arg.timeRange)
-
-
-    if ( result !== undefined && result.length > 0 ) {
-      log("result: " + result)
-      this.setState({track: result[0]})
+      this.setState({
+        searchInProgress: false,
+        nowPlaying: 
+        { 
+          uri: track[3],
+          title: track[0],
+          artist: track[2].map( e => e ).join(', '),
+          imageSource: track[4] || "https://semantic-ui.com/images/wireframe/square-image.png"
+        }
+      })
       return;
     } 
 
@@ -149,38 +169,45 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount = async () => {
     await this.setToken();
-    //this.clearAll();
-    //await this.fetchTopTracks(arg.discoverNew, arg.timeRange)
+    //this.clearAll();    
   }
 
   render() {
-    const {track} = this.state
+    const {searchInProgress} = this.state
     return (
       <View style={styles.container}>
           <Text>HomeScreen</Text>
-          <Button onPress={()=>this.fetchRec({type: "artist"})} title="Recommend me an artist"/>
-          <Button onPress={()=>this.fetchRec({type: "album"})} title="Recommend me an album"/>
-          <Button onPress={()=>this.fetchRec({type: "track"})} title="Recommend me a track"/>
+
           <Button onPress={
-            ()=>this.fetchRec({
-              discoverNew: false,  
-              timeRange: "short_term"}
-            )} 
+            ()=>{
+              if (!searchInProgress)
+                this.fetchRec()
+            }
+          } 
+          title="Discover"/>
+          <Button onPress={
+            ()=>{
+              if (!searchInProgress)
+                this.fetchRec({
+                  discoverNew: false,  
+                  timeRange: "medium_term"})
+            }
+          } 
             title="Recommend me something familiar"
           />
           
           <Button onPress={
-            ()=>this.fetchRec({
-              discoverNew: false,  
-              timeRange: "long_term"}
-            )} 
+            ()=>{
+              if (!searchInProgress)
+                this.fetchRec({
+                  discoverNew: false,  
+                  timeRange: "long_term"})
+              }
+            } 
             title="Give surprise recommendation"
           />
-
-
-          <WebView 
-            style={{width: 300, height: 200}}                        
-            source={{ uri: `https://www.last.fm/music/{artist}/_/${track}`}}
+          <AudioPlayer
+            nowPlaying={this.state.nowPlaying}
           />
       </View>
     );

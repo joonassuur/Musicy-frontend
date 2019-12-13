@@ -19,9 +19,9 @@ const SPYURL = (id) => {
 }
 
 const LFMURL = (id) => {
-    let key = 'b4232355a2295ab443e33a52d8312d8e'
-    let user = `&user=${id}&api_key=${key}&format=json`
-    let artist = `&artist=${id}&api_key=${key}&format=json`
+    const KEY = 'b4232355a2295ab443e33a52d8312d8e'
+    let user = `&user=${id}&api_key=${KEY}&format=json`
+    let artist = `&artist=${id}&api_key=${KEY}&format=json`
     return ({
             artist: {
                 related: `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar${artist}`,
@@ -34,6 +34,15 @@ const LFMURL = (id) => {
             }
         }
     )
+}
+
+const YTURL = () => {
+  const KEY = 'AIzaSyC24RHTh1gX_58mSjR08qdsz4aoXrTZPws'
+  return ({
+          search: `https://www.googleapis.com/youtube/v3/search?key=${KEY}`,
+          video: `https://www.googleapis.com/youtube/v3/videos?key=${KEY}`
+      }
+  )
 }
 
 export const SPYfetchURL = (type, id) => {
@@ -60,4 +69,15 @@ export const LFMfetchURL = (type, id) => {
       default:
         return undefined
     }
+}
+
+export const YTfetchURL = (type) => {
+  switch (type) {
+    case "search":
+      return YTURL().search
+    case "video":
+      return YTURL().video
+    default:
+      return undefined
+  }
 }

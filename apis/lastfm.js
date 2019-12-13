@@ -1,35 +1,36 @@
 import axios from 'axios';
 import {rand} from "../methods";
 
-useResp = async (res, type, arr, discoverNew) => {
-    let recomArtists = [],
-        topTracks = [];
+(LFM = async() => {
 
-    if (type === "recommendArtist") {
-        
-        mapRelatedArt = async () => {
+    useRes = async (res, type, arr, discoverNew) => {
+        let recomArtists = [];
+
+        if (type === "recommendArtist") {
             
-            res.data.similarartists.artist.map(e=>{
-                let mapUserTop = arr.map(i =>i[0].toLowerCase());
-                //push artists that are not in user's top listens to "recommended array"
-                if (discoverNew) {
-                    if (!mapUserTop.includes(e.name.toLowerCase())) {
+            mapRelatedArt = async () => {
+                
+                res.data.similarartists.artist.map(e=>{
+                    let mapUserTop = arr.map(i =>i[0].toLowerCase());
+                    //push artists that are not in user's top listens to "recommended array"
+                    if (discoverNew) {
+                        if (!mapUserTop.includes(e.name.toLowerCase())) {
+                            recomArtists.push(e.name)
+                        }
+                    } else {
                         recomArtists.push(e.name)
                     }
-                } else {
-                    recomArtists.push(e.name)
-                }
-            })
+                })
+            }
+            await mapRelatedArt()
+            //pick & return random related artist
+            return rand(recomArtists)
         }
-        await mapRelatedArt()
-        //pick & return random related artist
-        return rand(recomArtists)
     }
+})
 
-}
-
-export const makeLFMreq = async (arg) => {
-
+export const makeLFMreq = async (arg = {}) => {
+    LFM()
     arg = {
         url: arg.url || undefined,
         type: arg.type || undefined,
@@ -40,7 +41,7 @@ export const makeLFMreq = async (arg) => {
     const response = await axios.get(arg.url)
         .then(
             async (res) => {
-                return useResp(res, arg.type, arg.arr, arg.discoverNew)
+                return useRes(res, arg.type, arg.arr, arg.discoverNew)
             }
         )
         .catch((error) => {
