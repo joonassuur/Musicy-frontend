@@ -30,7 +30,7 @@ import {rand} from "../methods";
 })
 
 export const makeLFMreq = async (arg = {}) => {
-    LFM()
+    LFM() //get protected namespace
     arg = {
         url: arg.url || undefined,
         type: arg.type || undefined,

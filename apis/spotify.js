@@ -52,46 +52,39 @@ import {rand, log} from "../methods";
             sortTopGenres(longTermGenrePref, "long")
     }
     
-    mapTopArtists = async (res) => {
-        let artistPref = []
-    
-        mapArtistsToArray = async () => {
-            res.data.items.map(e => {
-                artistPref.push([e.name, e.id])
-            })
-        }
-    
-        await mapArtistsToArray()
-        return artistPref
-    }
-    
+
     //do something with the fetch response
     useRes = async (res, type, searchTerm, arr, discoverNew) => {
-        let recomArtists = [],
+        let userTop = [],
+            recomArtists = [],
             recomAlbums = [],
             topTracks = [],
-            searchResult = undefined,
-            images = [];
+            searchResult = undefined;
     
         switch (type) {
             case "fetchUserTop":
                 log("fetchUserTop...")
                 //maps users top artists and returns a random value
-                let randomTop = await mapTopArtists(res)
-                console.log(randomTop)
-                return randomTop
+                mapUserTop = async () => {
+                    res.data.items.map(e => {
+                        userTop.push([e.name, e.id])
+                    })
+                }
+                await mapUserTop()
+                return userTop
     
             case "recommendArtist":
                 log("recommendArtist...")
+
                 mapRelatedArt = async () => {
                     res.data.artists.map( e=> {
                         if (e.popularity > 0) {
                             let mapUserTop = arr.map(i =>i[1]);
                             //push artists that are not in user's top listens to "recommended array"
                             if (discoverNew) {
-                                if (!mapUserTop.includes(e.id)) {
+                                if (!mapUserTop.includes(e.id))
                                     recomArtists.push([e.name, e.id, e.popularity])
-                                }
+                            //push artists that are in user's top listens to "recommended array"
                             } else {
                                 recomArtists.push([e.name, e.id, e.popularity])
                             }
@@ -116,6 +109,7 @@ import {rand, log} from "../methods";
                 log("toptracks...")
                 mapTopTracks = async () => {
                     res.data.tracks.map( e=> {
+                        if (e.preview_url)
                         topTracks.push([e.name, e.id, e.artists.map(e=>e.name), e.preview_url, e.album.images])
                     })  
                 }
@@ -142,11 +136,12 @@ import {rand, log} from "../methods";
         }
     }
     
-    reqParams = (timeRange, type, searchTerm) => {
+    reqParams = (timeRange, type, searchTerm, limit) => {
         switch (type) {
             case "fetchUserTop":
+                log("limit: " + limit)
                 return ({
-                    limit: 20,
+                    limit: limit,
                     time_range: timeRange
                 })
             case "search":
@@ -163,23 +158,22 @@ import {rand, log} from "../methods";
                 return undefined
         }
     }
-
 })
 
-
-
-
 export const makeSPYreq = async (arg = {}) => {
-    SPY()
-    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
+    SPY() //get protected namespace
     
+    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
+    if (!SPYauthToken) return;
+
     arg = {
         url: arg.url || undefined,
-        type: arg.type || undefined,
-        arr: arg.arr || undefined,
+        type: arg.type || undefined, //request type
+        arr: arg.arr || undefined, // user top array
         timeRange: arg.timeRange || "medium_term",
         searchTerm: arg.searchTerm || undefined,
-        discoverNew: arg.discoverNew || true,
+        discoverNew: arg.discoverNew, // bool
+        limit: arg.limit || 40 //limit for "user top" list
     }
 
     const response = await axios.get(arg.url,
@@ -187,7 +181,7 @@ export const makeSPYreq = async (arg = {}) => {
             headers: {
                 Authorization: `Bearer ${SPYauthToken}`
             },
-            params: reqParams(arg.timeRange, arg.type, arg.searchTerm)
+            params: reqParams(arg.timeRange, arg.type, arg.searchTerm, arg.limit)
         })
         .then(
             async (res) => {

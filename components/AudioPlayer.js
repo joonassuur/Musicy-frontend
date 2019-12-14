@@ -80,7 +80,7 @@ export default class AudioPlayer extends React.Component {
             playsInSilentModeIOS: true,
             interruptionModeAndroid: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
             shouldDuckAndroid: true,
-            staysActiveInBackground: true,
+            staysActiveInBackground: false,
             playThroughEarpieceAndroid: true
         })
         } catch (e) {
@@ -107,21 +107,15 @@ export default class AudioPlayer extends React.Component {
     render() {
         return(
             <View style={styles.container}>
-                <Image
-                    style={styles.albumCover}
-                    source={{ uri: this.props.nowPlaying.imageSource }}
-                />
-                <View style={styles.controls}>
 
-                    <TouchableOpacity style={styles.control} onPress={this.handlePlayPause}>
-                        {this.state.isPlaying ? (
-                        <Ionicons name='ios-pause' size={48} color='#444' />
-                        ) : (
-                        <Ionicons name='ios-play-circle' size={48} color='#444' />
-                        )}
-                    </TouchableOpacity>
+                <TouchableOpacity onPress={this.handlePlayPause}>
+                    {this.state.isPlaying ? (
+                    <Ionicons name='ios-pause' size={48} color='#444' />
+                    ) : (
+                    <Ionicons name='ios-play-circle' size={48} color='#444' />
+                    )}
+                </TouchableOpacity>
 
-                </View>
                 {this.renderFileInfo()}
             </View>
         )
@@ -135,14 +129,11 @@ const styles = StyleSheet.create({
       flex: 1,
       backgroundColor: '#fff',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
     },
-    albumCover: {
-      width: 250,
-      height: 250
-    },
+
     trackInfo: {
-      padding: 40,
+      padding: 10,
       backgroundColor: '#fff'
     },
     trackInfoText: {
@@ -156,10 +147,6 @@ const styles = StyleSheet.create({
     smallText: {
       fontSize: 16
     },
-    control: {
-      margin: 20
-    },
-    controls: {
-      flexDirection: 'row'
-    }
+
+
   })

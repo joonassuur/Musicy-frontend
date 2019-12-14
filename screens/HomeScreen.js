@@ -10,13 +10,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import axios from 'axios';
 import AudioPlayer from '../components/AudioPlayer';
 
 import {makeSPYreq} from '../apis/spotify';
 import {makeLFMreq} from '../apis/lastfm';
-import {makeYTreq} from '../apis/youtube';
-import {SPYfetchURL, LFMfetchURL, YTfetchURL} from '../apis/URL';
+import {SPYfetchURL, LFMfetchURL} from '../apis/URL';
 import {rand, log, last, secondObj} from "../methods";
 
 
@@ -36,6 +34,7 @@ export default class HomeScreen extends React.Component {
   }
 
   clearAll = async () => {
+    //clear async storage
     try {
       await AsyncStorage.clear()
     } catch(e) {
@@ -44,7 +43,9 @@ export default class HomeScreen extends React.Component {
     log("cleared")
   }
 
+  
   setToken = async () => {
+    //function currently not in use in this screen
     const SPYauthToken = await AsyncStorage.getItem('SPYauthToken'),
           LFMuser = await AsyncStorage.getItem('LFMuser'),
           skipToken = await AsyncStorage.getItem('authSkipSPYToken');
@@ -56,55 +57,57 @@ export default class HomeScreen extends React.Component {
     })
   }
 
-  fetchUserTop = async (timeRange) => {
+  fetchUserTop = async (timeRange, limit) => {
     //get user's top artists/genres from Spotify
     return await makeSPYreq({
       url: SPYfetchURL("user"), 
       type: "fetchUserTop",
-      timeRange: timeRange
+      timeRange: timeRange,
+      limit: limit
     })
   }
 
-  fetchRecomArt = async (discoverNew, timeRange) => {
+  fetchRecomArt = async (discoverNew, timeRange, limit) => {
     //get related artists based on user's Spotify top played artists
-    let userTopArr = await this.fetchUserTop(timeRange),
-        finalSPY = undefined,
-        //grab random value from user's Spotify top played
-        ranID = rand(userTopArr)
-        //make "similar artists" requests to both Spotify and LFM based on above value. 
-        //Both return one random value that is not in users current top played for given period.
-        SPYrecom = await makeSPYreq({
-          url: SPYfetchURL("rltdArt", ranID[1]), 
-          type: "recommendArtist", 
-          arr: userTopArr,
-          discoverNew: discoverNew
-        }),
-        LFMrecom = await makeLFMreq({
-          url: LFMfetchURL("rltdArt", ranID[0]), 
-          type: "recommendArtist", 
-          arr: userTopArr,
-          discoverNew: discoverNew
-        }),
-        //returned values from both Spotify and LFM
-        overall = [SPYrecom[0], LFMrecom],
-        ranOverall = rand(overall);
-        //Pick randomly either Spotify or LFM recommendation and return it. 
-        //If picked value is from LFM and spotify does not have the given artist, the script will run again
-      
-        if (ranOverall === SPYrecom[0]) {
-          finalSPY = SPYrecom[1]
-        } else {
-          finalSPY = await makeSPYreq({
+    let userTopArr = await this.fetchUserTop(timeRange, limit),
+        //grab random value from user's Spotify top played. [0] == name, [1] == ID
+        ranUserTop = rand(userTopArr),
+        final = undefined; //final value to be returned in case the randomly picked artist is from LFM
+
+        if (discoverNew) {
+        //if bool "discoverNew" is true, make "similar artists" requests to both Spotify and LFM based on above value. Both return one random value that is not in users current top played (inside userTopArr value) for given period.
+          let SPYrecom = await makeSPYreq({ //Spotify Recommendation
+            url: SPYfetchURL("rltdArt", ranUserTop[1]), 
+            type: "recommendArtist", 
+            arr: userTopArr,
+            discoverNew: discoverNew
+          })
+          let LFMrecom = await makeLFMreq({ //LFM Recommendation
+            url: LFMfetchURL("rltdArt", ranUserTop[0]), 
+            type: "recommendArtist", 
+            arr: userTopArr,
+            discoverNew: discoverNew
+          })
+          //Pick randomly either Spotify or LFM recommendation and return it.
+          let ranOverall = rand([SPYrecom[0], LFMrecom]);
+          ranOverall === SPYrecom[0] ? 
+          // if the picked ranOverall value is from Spotify, exit here...
+          final = SPYrecom[1] :
+          // ...else search the LFM recommendation on Spotify
+          final = await makeSPYreq({
             url: SPYfetchURL("search"), 
             type: "search", 
             searchTerm: ranOverall
           });
+          return final
         }
-    return finalSPY
+        //if bool "discoverNew" is false, pick an artist already in user's top played for the selected period
+        return ranUserTop[1]
   }
 
   fetchRecomAlbum = async (discoverNew, timeRange) => {
-    //get recommended albums
+    //first fetch an artist ID, then make an album request based on said ID
+    //not in use currently
     let id = await this.fetchRecomArt(discoverNew, timeRange),
         album = await makeSPYreq({
           url: SPYfetchURL("album", id), 
@@ -113,47 +116,41 @@ export default class HomeScreen extends React.Component {
     return album;
   }
 
-  fetchTopTracks = async (discoverNew, timeRange) => {
-    //get top tracks
-    let id = await this.fetchRecomArt(discoverNew, timeRange),
+  fetchTopTracks = async (discoverNew, timeRange, limit) => {
+    //first fetch an artist ID, then make a track request based on said ID
+    let id = await this.fetchRecomArt(discoverNew, timeRange, limit),
         track = await makeSPYreq({
           url: SPYfetchURL("track", id), 
           type: "topTracks"
         });
-     
-        //assign correct image to track object
-        if (track !== undefined) {
+        
+        if (track) {
+          //assign correct image to track object
           track[4] = secondObj(track[4]).url  
         }
-
-        //do something if track preview (track[3]) == null
 
     return track;
   }
 
   fetchRec = async (arg = {}) => {
 
-    const {SPYtoken} = this.state
-
+    // halt new search requests while "searchInProgress" is true
     this.setState({searchInProgress: true})
-
-    if (SPYtoken === null) return;
     
     arg = {
       //discoverNew = only pick among recommended artists that are not in user's top played list
-      discoverNew: arg.discoverNew || true,
+      discoverNew: arg.discoverNew,
       timeRange: arg.timeRange || "medium_term",
-      genre: arg.genre || undefined  //not in use currently
-    } 
+      limit: arg.limit || 20,
+      genre: arg.genre || undefined,  //not in use currently
+    }
 
-    let track = await this.fetchTopTracks(arg.discoverNew, arg.timeRange);
+    let track = await this.fetchTopTracks(arg.discoverNew, arg.timeRange, arg.limit);
 
-    if ( track !== undefined && track.length > 0 ) {
-
+    if ( track && track.length > 0 ) {
       this.setState({
         searchInProgress: false,
-        nowPlaying: 
-        { 
+        nowPlaying: { 
           uri: track[3],
           title: track[0],
           artist: track[2].map( e => e ).join(', '),
@@ -164,6 +161,7 @@ export default class HomeScreen extends React.Component {
     } 
 
     log("again..")
+    //If picked value is from LFM and spotify does not have the given artist, the script will keep running until the condition is true
     this.fetchRec(arg)
   }
 
@@ -171,44 +169,37 @@ export default class HomeScreen extends React.Component {
     await this.setToken();
     //this.clearAll();    
   }
-
+  
   render() {
     const {searchInProgress} = this.state
     return (
       <View style={styles.container}>
-          <Text>HomeScreen</Text>
 
-          <Button onPress={
-            ()=>{
-              if (!searchInProgress)
-                this.fetchRec()
-            }
-          } 
-          title="Discover"/>
-          <Button onPress={
-            ()=>{
-              if (!searchInProgress)
-                this.fetchRec({
-                  discoverNew: false,  
-                  timeRange: "medium_term"})
-            }
-          } 
-            title="Recommend me something familiar"
-          />
-          
-          <Button onPress={
-            ()=>{
-              if (!searchInProgress)
-                this.fetchRec({
-                  discoverNew: false,  
-                  timeRange: "long_term"})
-              }
-            } 
-            title="Give surprise recommendation"
+          <Text>HomeScreen</Text>
+          <Image style={styles.albumCover}
+                 source={{ uri: this.state.nowPlaying.imageSource }}
           />
           <AudioPlayer
             nowPlaying={this.state.nowPlaying}
           />
+          <Button onPress={ ()=>{
+              if (!searchInProgress)
+                this.fetchRec({
+                  discoverNew: true, 
+                  limit: 40,
+                })}}
+            title="Discover"
+          />
+
+          <Button onPress={ ()=>{
+              if (!searchInProgress)
+                this.fetchRec({
+                  timeRange: rand(["short_term", "medium_term", "long_term"]),
+                  limit: 40,
+                })}} 
+            title="Recommend me something familiar"
+          />
+
       </View>
     );
   }
@@ -226,86 +217,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: '#fff',
   },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
-    fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
+  albumCover: {
+    width: 250,
+    height: 250
   },
-  contentContainer: {
-    paddingTop: 30,
-  },
-  welcomeContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  welcomeImage: {
-    width: 100,
-    height: 80,
-    resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
-  },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
-  },
+
 });

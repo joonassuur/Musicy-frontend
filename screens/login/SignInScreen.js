@@ -36,7 +36,7 @@ const SignInScreen = ( props ) => {
                 title="Log in with Spotify" 
                 onPress={ () => navigate('SpotWebView') }
             /> 
-            <Text>Or</Text>
+{/*             <Text>Or</Text>
             <View style={{flexDirection: "row" }}>
                 <TextInput
                     placeholder="Enter your LastFM username"
@@ -56,7 +56,7 @@ const SignInScreen = ( props ) => {
             >
                 skip login 
             </Text>
-            <Text>(data will be lost if app is removed)</Text>
+            <Text>(data will be lost if app is removed)</Text> */}
         </View>
     )
 }
