@@ -11,9 +11,7 @@ import {
   View,
 } from 'react-native';
 import AudioPlayer from '../components/AudioPlayer';
-
-import {makeSPYreq} from '../apis/spotify';
-import {makeLFMreq} from '../apis/lastfm';
+import makeReq from '../apis/request';
 import {SPYfetchURL, LFMfetchURL} from '../apis/URL';
 import {rand, log, last, secondObj} from "../methods";
 
@@ -42,7 +40,6 @@ export default class HomeScreen extends React.Component {
     }    
     log("cleared")
   }
-
   
   setToken = async () => {
     //function currently not in use in this screen
@@ -59,7 +56,7 @@ export default class HomeScreen extends React.Component {
 
   fetchUserTop = async (timeRange, limit) => {
     //get user's top artists/genres from Spotify
-    return await makeSPYreq({
+    return await makeReq({
       url: SPYfetchURL("user"), 
       type: "fetchUserTop",
       timeRange: timeRange,
@@ -76,14 +73,15 @@ export default class HomeScreen extends React.Component {
 
         if (discoverNew) {
         //if bool "discoverNew" is true, make "similar artists" requests to both Spotify and LFM based on above value. Both return one random value that is not in users current top played (inside userTopArr value) for given period.
-          let SPYrecom = await makeSPYreq({ //Spotify Recommendation
+          let SPYrecom = await makeReq({ //Spotify Recommendation
             url: SPYfetchURL("rltdArt", ranUserTop[1]), 
             type: "recommendArtist", 
             arr: userTopArr,
             discoverNew: discoverNew
           })
-          let LFMrecom = await makeLFMreq({ //LFM Recommendation
+          let LFMrecom = await makeReq({ //LFM Recommendation
             url: LFMfetchURL("rltdArt", ranUserTop[0]), 
+            api: "lastfm",
             type: "recommendArtist", 
             arr: userTopArr,
             discoverNew: discoverNew
@@ -94,7 +92,7 @@ export default class HomeScreen extends React.Component {
           // if the picked ranOverall value is from Spotify, exit here...
           final = SPYrecom[1] :
           // ...else search the LFM recommendation on Spotify
-          final = await makeSPYreq({
+          final = await makeReq({
             url: SPYfetchURL("search"), 
             type: "search", 
             searchTerm: ranOverall
@@ -109,7 +107,7 @@ export default class HomeScreen extends React.Component {
     //first fetch an artist ID, then make an album request based on said ID
     //not in use currently
     let id = await this.fetchRecomArt(discoverNew, timeRange),
-        album = await makeSPYreq({
+        album = await makeReq({
           url: SPYfetchURL("album", id), 
           type: "recommendAlbum"
         });
@@ -119,7 +117,7 @@ export default class HomeScreen extends React.Component {
   fetchTopTracks = async (discoverNew, timeRange, limit) => {
     //first fetch an artist ID, then make a track request based on said ID
     let id = await this.fetchRecomArt(discoverNew, timeRange, limit),
-        track = await makeSPYreq({
+        track = await makeReq({
           url: SPYfetchURL("track", id), 
           type: "topTracks"
         });

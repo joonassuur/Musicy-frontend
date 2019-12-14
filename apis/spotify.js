@@ -1,8 +1,6 @@
-import axios from 'axios';
-import { AsyncStorage } from 'react-native';
 import {rand, log} from "../methods";
 
-(SPY = async () => {
+export default SPY = async () => {
 
     mapTopGenres = (res, timeRange) => {
         let midTermGenrePref = [],
@@ -158,42 +156,5 @@ import {rand, log} from "../methods";
                 return undefined
         }
     }
-})
-
-export const makeSPYreq = async (arg = {}) => {
-    SPY() //get protected namespace
-    
-    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
-    if (!SPYauthToken) return;
-
-    arg = {
-        url: arg.url || undefined,
-        type: arg.type || undefined, //request type
-        arr: arg.arr || undefined, // user top array
-        timeRange: arg.timeRange || "medium_term",
-        searchTerm: arg.searchTerm || undefined,
-        discoverNew: arg.discoverNew, // bool. defaults to falsy
-        limit: arg.limit || 40 //limit for "user top" list
-    }
-
-    const response = await axios.get(arg.url,
-        {
-            headers: {
-                Authorization: `Bearer ${SPYauthToken}`
-            },
-            params: reqParams(arg.timeRange, arg.type, arg.searchTerm, arg.limit)
-        })
-        .then(
-            async (res) => {
-                return useRes(res, arg.type, arg.searchTerm, arg.arr, arg.discoverNew)
-            }
-        )
-        .catch((error) => {
-            log("spotify error: " + error);
-        })
-    
-    return response
 }
-
-
 

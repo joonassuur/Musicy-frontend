@@ -1,7 +1,6 @@
-import axios from 'axios';
 import {rand} from "../methods";
 
-(LFM = async() => {
+export default LFM = async() => {
 
     useRes = async (res, type, arr, discoverNew) => {
         let recomArtists = [];
@@ -27,26 +26,5 @@ import {rand} from "../methods";
             return rand(recomArtists)
         }
     }
-})
-
-export const makeLFMreq = async (arg = {}) => {
-    LFM() //get protected namespace
-    arg = {
-        url: arg.url || undefined,
-        type: arg.type || undefined,  //request type
-        arr: arg.arr || undefined, // user top array
-        discoverNew: arg.discoverNew, //limit for "user top" list
-    }
-
-    const response = await axios.get(arg.url)
-        .then(
-            async (res) => {
-                return useRes(res, arg.type, arg.arr, arg.discoverNew)
-            }
-        )
-        .catch((error) => {
-            console.log("LFM error: " + error);
-        })
-    
-    return response
 }
+
