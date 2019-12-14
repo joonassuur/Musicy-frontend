@@ -139,9 +139,9 @@ export default class HomeScreen extends React.Component {
     
     arg = {
       //discoverNew = only pick among recommended artists that are not in user's top played list
-      discoverNew: arg.discoverNew,
+      discoverNew: arg.discoverNew, // bool. defaults to falsy
       timeRange: arg.timeRange || "medium_term",
-      limit: arg.limit || 20,
+      limit: arg.limit || 40,
       genre: arg.genre || undefined,  //not in use currently
     }
 
