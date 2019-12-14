@@ -33,9 +33,9 @@ export const makeLFMreq = async (arg = {}) => {
     LFM() //get protected namespace
     arg = {
         url: arg.url || undefined,
-        type: arg.type || undefined,
-        arr: arg.arr || undefined,
-        discoverNew: arg.discoverNew || true,
+        type: arg.type || undefined,  //request type
+        arr: arg.arr || undefined, // user top array
+        discoverNew: arg.discoverNew, //limit for "user top" list
     }
 
     const response = await axios.get(arg.url)

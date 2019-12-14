@@ -172,7 +172,7 @@ export const makeSPYreq = async (arg = {}) => {
         arr: arg.arr || undefined, // user top array
         timeRange: arg.timeRange || "medium_term",
         searchTerm: arg.searchTerm || undefined,
-        discoverNew: arg.discoverNew, // bool
+        discoverNew: arg.discoverNew, // bool. defaults to falsy
         limit: arg.limit || 40 //limit for "user top" list
     }
 
