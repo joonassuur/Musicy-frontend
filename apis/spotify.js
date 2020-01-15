@@ -53,91 +53,127 @@ export default SPY = async () => {
 
     //do something with the fetch response
     useRes = async (res, type, searchTerm, arr, discoverNew) => {
-        let userTop = [],
-            recomArtists = [],
-            recomAlbums = [],
-            topTracks = [],
-            searchResult = undefined;
-    
+            
         switch (type) {
-            case "fetchUserTop":
-                log("fetchUserTop...")
-                //maps users top artists and returns a random value
-                mapUserTop = async () => {
-                    res.data.items.map(e => {
-                        userTop.push([e.name, e.id])
-                    })
-                }
-                await mapUserTop()
-                return userTop
+            case "userTopArtists":
+                log("userTopArtists...")
+                //maps users top artists
+                let userTopArt = []
+                res.data.items.map(e => {
+                    userTopArt.push([e.name, e.id, e.genres])
+                })
+                return userTopArt
+
+            case "userTopTracks":
+                log("userTopTracks...")
+                //maps users top artists
+                let userTopTracks = []
+                res.data.items.map(e => {
+                    userTopTracks.push([e.artists[0].name, e.id, e.name])
+                })
+                return userTopTracks
     
             case "recommendArtist":
                 log("recommendArtist...")
+                //recommends similar artists based on single input artist ID
+                let recomArtists = []
 
-                mapRelatedArt = async () => {
-                    res.data.artists.map( e=> {
-                        if (e.popularity > 0) {
-                            let mapUserTop = arr.map(i =>i[1]);
-                            //push artists that are not in user's top listens to "recommended array"
-                            if (discoverNew) {
-                                if (!mapUserTop.includes(e.id))
-                                    recomArtists.push([e.name, e.id, e.popularity])
-                            //push artists that are in user's top listens to "recommended array"
-                            } else {
+                res.data.artists.map( e=> {
+                    if (e.popularity > 0) {
+                        let mapUserTop = arr.map(i =>i[1]);
+                        //push artists that are not in user's top listens to "recommended array"
+                        if (discoverNew) {
+                            if (!mapUserTop.includes(e.id))
                                 recomArtists.push([e.name, e.id, e.popularity])
-                            }
+                        //push artists that are in user's top listens to "recommended array"
+                        } else {
+                            recomArtists.push([e.name, e.id, e.popularity])
                         }
-                    })  
-                }
-                await mapRelatedArt()
+                    }
+                })  
                 //pick & return random related artist
                 return rand(recomArtists)
     
             case "recommendAlbum":
-                mapAlbums = async () => {
-                    res.data.items.map( e=> {
-                        recomAlbums.push([e.name, e.id])
-                    })  
-                }
-                await mapAlbums()
+                log("recommendedAlbum...")
+                let recomAlbums = []
+
+                res.data.items.map( e=> {
+                    recomAlbums.push([e.name, e.id])
+                })  
                 //pick & return random related album
                 return rand(recomAlbums)
     
-            case "topTracks":
-                log("toptracks...")
-                mapTopTracks = async () => {
-                    res.data.tracks.map( e=> {
-                        if (e.preview_url)
-                        topTracks.push([e.name, e.id, e.artists.map(e=>e.name), e.preview_url, e.album.images])
-                    })  
-                }
-                await mapTopTracks()
+            case "recommendedTracks":
+                log("recommendedTracks...")
+                let topTracks = []
+
+                res.data.tracks.map( e=> {
+                    if (e.preview_url)
+                    topTracks.push([e.name, e.id, e.artists.map(e=>e.name), e.preview_url, e.album.images])
+                })  
                 //pick & return random top track
                 return rand(topTracks);
+
             case "search":
                 log("searching...")
-                //search spotify for an artist
-                searchSPY = async () => {
+                //search spotify for an artist, based on name string
+                let result = undefined;
+                search = async () => {
                     res.data.artists.items.map( e=> {
                         if (e.popularity > 0) {
                             if(e.name.toLowerCase() === searchTerm.toLowerCase()) {
-                                searchResult = e.id
+                                result = e.id
                             }
                         }
                     })
-                } 
-                await searchSPY()
-                return searchResult
+                }
+                await search()
+                return result;
                 
+            case "genreSeeds":
+                //get all available genres that can be used as seeds
+                return res.data.genres
+
+            case "seedsRecom":
+                log("seedsRecom...")
+                //get recommendations based on seeds
+                let recoms = []
+
+                res.data.tracks.map( e=> {
+                    recoms.push([e.id, e.name, e.artists[0].name, e.preview_url ])
+                })
+                return recoms;
+
+            case "audioFeatures":
+                let features = [[],[],[],[],[]],
+                    reducer = (accumulator, currentValue) => accumulator + currentValue;
+
+                res.data.audio_features.map(e=>{
+                    features[0].push(e.danceability)
+                    features[1].push(e.energy)
+                    features[2].push(e.valence)
+                    features[3].push(e.tempo)
+                    features[4].push(e.acousticness)
+                })
+
+                let averages = features.map( e => (e.reduce(reducer)/e.length) )
+                return averages
+
+            case "profile":
+                //get user profile
+                return res.data.id
+
             default:
                 return;
         }
     }
     
-    reqParams = (timeRange, type, searchTerm, limit) => {
+    reqParams = (timeRange, type, searchTerm, limit, seeds) => {
+
         switch (type) {
-            case "fetchUserTop":
-                log("limit: " + limit)
+            case "userTopArtists":
+            case "userTopTracks":
                 return ({
                     limit: limit,
                     time_range: timeRange
@@ -148,9 +184,44 @@ export default SPY = async () => {
                     type: "artist"
                 })
             case "recommendAlbum":
-            case "topTracks":
+            case "recommendedTracks":
                 return({
                     country: "from_token"
+                })
+            case "seedsRecom":
+                const attributes = seeds.attributes
+                return({
+                    market: "from_token",
+                    limit: limit,
+                    seed_artists: seeds.seed_artists,
+                    seed_genres: seeds.seed_genres,
+                    seed_tracks	: seeds.seed_tracks,
+                    target_danceability: attributes.target_danceability,
+                    target_energy: attributes.target_energy,
+                    target_valence: attributes.target_valence,
+                    target_tempo: attributes.target_tempo,
+                    target_acousticness: attributes.target_acousticness,
+                    target_instrumentalness: attributes.target_instrumentalness,
+                    min_danceability: attributes. min_danceability,
+                    min_energy: attributes.min_energy,
+                    min_valence: attributes.min_valence,
+                    min_tempo: attributes.min_tempo,
+                    min_acousticness: attributes.min_acousticness,
+                    min_instrumentalness: attributes.min_instrumentalness,
+                    max_danceability: attributes. max_danceability,
+                    max_energy: attributes.max_energy,
+                    max_valence: attributes.max_valence,
+                    max_tempo: attributes.max_tempo,
+                    max_acousticness: attributes.max_acousticness,
+                    max_instrumentalness: attributes.max_instrumentalness,
+                })
+            case "audioFeatures":
+                return({
+                    ids: searchTerm
+                })
+            case "createPlayList":
+                return({
+                    name: searchTerm,
                 })
             default:
                 return undefined

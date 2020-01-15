@@ -2,30 +2,29 @@ import { AppLoading } from 'expo';
 //import { Asset } from 'expo-asset';
 import * as Font from 'expo-font';
 import React, { useState } from 'react';
-import { Platform, StatusBar, StyleSheet, View } from 'react-native';
+import { Platform, StatusBar, StyleSheet, View, Text } from 'react-native';
 import {createStore} from 'redux';
 import {Provider} from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
+
 import AppNavigator from './navigation/AppNavigator';
 
 
 const initialState = {
-  midTermGenrePref: [],
-  longTermGenrePref: [],
-  midTermArtistPref: [],
-  longTermArtistPref: [],
+  nowPlaying: { 
+    title: null,
+    id: null,
+    artist: null,
+    uri: null,          
+    imageSource: null,
+    key: null
+  }
 }
 
 const reducer = (state = initialState, action) => {
   switch(action.type) {
-    case 'SET_MID_TERM_GENRE_PREF':
-      return {midTermGenrePref : state.midTermGenrePref}
-    case 'SET_LONG_TERM_GENRE_PREF':
-      return {longTermGenrePref: state.longTermGenrePref}
-    case 'SET_MID_TERM_ARTIST_PREF':
-      return {midTermArtistPref : state.midTermArtistPref}
-    case 'SET_LONG_TERM_ARTIST_PREF':
-      return {longTermArtistPref: state.longTermArtistPref}
+    case 'SET_NOWPLAYING':
+      return {nowPlaying : action.track}
     default:
       return state;
   }

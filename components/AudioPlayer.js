@@ -8,21 +8,25 @@ import {
 } from 'react-native';
 
 import {Audio} from 'expo-av';
+import {connect} from 'react-redux'
 import { Ionicons } from '@expo/vector-icons';
-import {omitLast} from "../methods"
+import {omitLast, log} from "../methods"
 
-export default class AudioPlayer extends React.Component {
+class AudioPlayer extends React.Component {
+
     state = {
         isPlaying: false,
         playbackInstance: null,
         volume: 1.0,
-        isBuffering: false,
-        uri: ''
+        isBuffering: false
     }
 
     handlePlayPause = async () => {
-        if (this.props.nowPlaying.uri !== null) {
-            const { isPlaying, playbackInstance } = this.state
+
+        const { isPlaying, playbackInstance } = this.state
+
+        if (this.props.nowPlaying.uri) {
+            
             isPlaying ? await playbackInstance.pauseAsync() : await playbackInstance.playAsync()
         
             this.setState({
@@ -31,9 +35,9 @@ export default class AudioPlayer extends React.Component {
         } 
     }
 
-    async loadAudio() {
+    loadAudio = async () => {
         const {isPlaying, volume} = this.state
-    
+
         try {
             const playbackInstance = new Audio.Sound()
             const source = {
@@ -45,54 +49,66 @@ export default class AudioPlayer extends React.Component {
                 volume
             }
     
-            playbackInstance.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate)     
+            playbackInstance.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate)    
             await playbackInstance.loadAsync(source, status, false)
             this.setState({playbackInstance})
+
         } catch (e) {
             console.log(e)
         }
     }
    
-    onPlaybackStatusUpdate = status => {
+    onPlaybackStatusUpdate = async status => {
+        const { playbackInstance } = this.state
+
         this.setState({
             isBuffering: status.isBuffering
         })
+
+        //reload song and stop playback once it reaches the end
+        if ( status.didJustFinish ) {
+            this.handlePlayPause() 
+            await playbackInstance.unloadAsync()
+            this.loadAudio()
+        } 
     }
 
-    async componentDidUpdate(prevProps) {
-        const { playbackInstance} = this.state
+    async componentDidUpdate(prevProps, prevState) {
+        const { playbackInstance } = this.state
+
         if (this.props.nowPlaying !== prevProps.nowPlaying) {
             if(playbackInstance) 
                 await playbackInstance.unloadAsync()
 
-            if (this.props.nowPlaying.uri !== null) {
+            if (this.props.nowPlaying.uri) {
                 this.loadAudio()
             }
         }
     }
 
-
     async componentDidMount() {
+        
         try {
         await Audio.setAudioModeAsync({
             allowsRecordingIOS: false,
             interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
-            playsInSilentModeIOS: true,
+            playsInSilentModeIOS: false,
             interruptionModeAndroid: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
-            shouldDuckAndroid: true,
-            staysActiveInBackground: false,
-            playThroughEarpieceAndroid: true
+            shouldDuckAndroid: false,
+            staysActiveInBackground: true,
+            playThroughEarpieceAndroid: false
         })
         } catch (e) {
-
             console.log(e)
         }
+
+        this.loadAudio()
     }
+
 
     renderFileInfo() {
         const { playbackInstance } = this.state
-        return playbackInstance ? 
-        (
+        return playbackInstance && (
             <View style={styles.trackInfo}>
                 <Text style={[styles.trackInfoText, styles.largeText]}>
                     {this.props.nowPlaying.title}
@@ -101,18 +117,17 @@ export default class AudioPlayer extends React.Component {
                     {this.props.nowPlaying.artist}
                 </Text>
             </View>
-        ) : null
+        )
     }
 
     render() {
         return(
             <View style={styles.container}>
-
                 <TouchableOpacity onPress={this.handlePlayPause}>
                     {this.state.isPlaying ? (
-                    <Ionicons name='ios-pause' size={48} color='#444' />
+                    <Ionicons name='ios-pause' size={48} color='#808080' />
                     ) : (
-                    <Ionicons name='ios-play-circle' size={48} color='#444' />
+                    <Ionicons name='ios-play-circle' size={48} color='#808080' />
                     )}
                 </TouchableOpacity>
 
@@ -122,31 +137,30 @@ export default class AudioPlayer extends React.Component {
     }
 }
 
+const mapStateToProps = state => {
+    return {
+        nowPlaying: state.nowPlaying
+    }
+}
 
+export default connect(mapStateToProps)(AudioPlayer)
 
 const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      backgroundColor: '#fff',
+      backgroundColor: '#000',
       alignItems: 'center',
       justifyContent: 'center',
-    },
-
-    trackInfo: {
-      padding: 10,
-      backgroundColor: '#fff'
     },
     trackInfoText: {
       textAlign: 'center',
       flexWrap: 'wrap',
-      color: '#550088'
+      color: '#fff'
     },
     largeText: {
-      fontSize: 22
+      fontSize: 12
     },
     smallText: {
-      fontSize: 16
+      fontSize: 9
     },
-
 
   })

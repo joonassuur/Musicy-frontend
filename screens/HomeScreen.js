@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Image,
   Platform,
-  Button,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,25 +9,23 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {connect} from 'react-redux'
+import { Icon, Button } from 'react-native-elements'
+
 import AudioPlayer from '../components/AudioPlayer';
-import makeReq from '../apis/request';
-import {SPYfetchURL, LFMfetchURL} from '../apis/URL';
+import fetchFuncs from '../FetchFunctions';
 import {rand, log, last, secondObj} from "../methods";
 
+let viewedTracks = []
 
-export default class HomeScreen extends React.Component {
+class HomeScreen extends React.Component {
 
   state = {
     SPYtoken: null,
     LFMuser: null,
     authSkipSPYToken: null,
-
-    nowPlaying: {
-        title: null,
-        artist: null,
-        uri: null,
-        imageSource: "https://semantic-ui.com/images/wireframe/square-image.png"
-    }
+    searchInProgress: false,
+    saved: false
   }
 
   clearAll = async () => {
@@ -38,7 +35,7 @@ export default class HomeScreen extends React.Component {
     } catch(e) {
       // clear error
     }    
-    log("cleared")
+    log("cleared async storage")
   }
   
   setToken = async () => {
@@ -54,84 +51,53 @@ export default class HomeScreen extends React.Component {
     })
   }
 
-  fetchUserTop = async (timeRange, limit) => {
-    //get user's top artists/genres from Spotify
-    return await makeReq({
-      url: SPYfetchURL("user"), 
-      type: "fetchUserTop",
-      timeRange: timeRange,
-      limit: limit
-    })
-  }
+  saveTrack = () => {
+    if (this.props.nowPlaying.id !== null) {
+      fetchFuncs()
 
-  fetchRecomArt = async (discoverNew, timeRange, limit) => {
-    //get related artists based on user's Spotify top played artists
-    let userTopArr = await this.fetchUserTop(timeRange, limit),
-        //grab random value from user's Spotify top played. [0] == name, [1] == ID
-        ranUserTop = rand(userTopArr),
-        final = undefined; //final value to be returned in case the randomly picked artist is from LFM
+      //display heart icon, indicating that the track can either be liked or removed from likes
+      return(
+        <View>
+          { !this.state.saved &&
+            <Icon
+              name='ios-heart-empty'
+              type='ionicon'
+              color='#000'
+              onPress={ async () => {
+                  //add track to user's favorites
+                  let res = await saveTrack("save", this.props.nowPlaying.id)
+                  if (res === 200) {
+                    this.setState({saved: true});
+                  }
+                }
+              }
+            />
+          }
 
-        if (discoverNew) {
-        //if bool "discoverNew" is true, make "similar artists" requests to both Spotify and LFM based on above value. Both return one random value that is not in users current top played (inside userTopArr value) for given period.
-          let SPYrecom = await makeReq({ //Spotify Recommendation
-            url: SPYfetchURL("rltdArt", ranUserTop[1]), 
-            type: "recommendArtist", 
-            arr: userTopArr,
-            discoverNew: discoverNew
-          })
-          let LFMrecom = await makeReq({ //LFM Recommendation
-            url: LFMfetchURL("rltdArt", ranUserTop[0]), 
-            api: "lastfm",
-            type: "recommendArtist", 
-            arr: userTopArr,
-            discoverNew: discoverNew
-          })
-          //Pick randomly either Spotify or LFM recommendation and return it.
-          let ranOverall = rand([SPYrecom[0], LFMrecom]);
-          ranOverall === SPYrecom[0] ? 
-          // if the picked ranOverall value is from Spotify, exit here...
-          final = SPYrecom[1] :
-          // ...else search the LFM recommendation on Spotify
-          final = await makeReq({
-            url: SPYfetchURL("search"), 
-            type: "search", 
-            searchTerm: ranOverall
-          });
-          return final
-        }
-        //if bool "discoverNew" is false, pick an artist already in user's top played for the selected period
-        return ranUserTop[1]
-  }
+          { this.state.saved &&
+            <Icon
+              name='ios-heart'
+              type='ionicon'
+              color='#000'
+              onPress={ async () => {
+                  //remove track to user's favorites
+                  let res = await saveTrack("remove", this.props.nowPlaying.id)
+                  if (res === 200) {
+                    this.setState({saved: false});
+                  }
+                }
+              }
+            />
+          }
+        </View>
 
-  fetchRecomAlbum = async (discoverNew, timeRange) => {
-    //first fetch an artist ID, then make an album request based on said ID
-    //not in use currently
-    let id = await this.fetchRecomArt(discoverNew, timeRange),
-        album = await makeReq({
-          url: SPYfetchURL("album", id), 
-          type: "recommendAlbum"
-        });
-    return album;
-  }
-
-  fetchTopTracks = async (discoverNew, timeRange, limit) => {
-    //first fetch an artist ID, then make a track request based on said ID
-    let id = await this.fetchRecomArt(discoverNew, timeRange, limit),
-        track = await makeReq({
-          url: SPYfetchURL("track", id), 
-          type: "topTracks"
-        });
-        
-        if (track) {
-          //assign correct image to track object
-          track[4] = secondObj(track[4]).url  
-        }
-
-    return track;
+      )
+    }
   }
 
   fetchRec = async (arg = {}) => {
-
+    
+    fetchFuncs()
     // halt new search requests while "searchInProgress" is true
     this.setState({searchInProgress: true})
     
@@ -143,20 +109,38 @@ export default class HomeScreen extends React.Component {
       genre: arg.genre || undefined,  //not in use currently
     }
 
-    let track = await this.fetchTopTracks(arg.discoverNew, arg.timeRange, arg.limit);
+    // track [0] = title,  [1] = id, [2] = artist, [3] = uri, [4] = image
+    let track = await fetchRecommendedTracks(arg.discoverNew, arg.timeRange, arg.limit);
 
-    if ( track && track.length > 0 ) {
+    if (track && track.length > 0) {
+
+      //assign correct image to track object
+      track[4] = secondObj(track[4]).url  
+      //checks if track is already in recently viewed list
+      if (viewedTracks.includes(track[1])) {
+        track = undefined;
+      }
+
+      this.props.setNowPlaying({        
+          title: track[0],
+          id: track[1],
+          artist: track[2].map(e=>e).join(', '),
+          uri: track[3],          
+          imageSource: track[4],
+      })
+
       this.setState({
         searchInProgress: false,
-        nowPlaying: { 
-          uri: track[3],
-          title: track[0],
-          artist: track[2].map( e => e ).join(', '),
-          imageSource: track[4] || "https://semantic-ui.com/images/wireframe/square-image.png"
-        }
+        saved: false
       })
+
+      if (arg.discoverNew) {
+        //add track to "recently viewed" list, if discover mode is on, so it wont appear again for some time
+        viewedTracks.length > 300 ? viewedTracks = [] : viewedTracks.push(track[1])
+      }
+      
       return;
-    } 
+    }
 
     log("again..")
     //If picked value is from LFM and spotify does not have the given artist, the script will keep running until the condition is true
@@ -165,21 +149,21 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount = async () => {
     await this.setToken();
-    //this.clearAll();    
+    //this.clearAll();   
   }
+
   
   render() {
     const {searchInProgress} = this.state
+
     return (
       <View style={styles.container}>
 
-          <Text>HomeScreen</Text>
           <Image style={styles.albumCover}
-                 source={{ uri: this.state.nowPlaying.imageSource }}
+                 source={{ uri: this.props.nowPlaying.imageSource || "https://semantic-ui.com/images/wireframe/square-image.png" }}
           />
-          <AudioPlayer
-            nowPlaying={this.state.nowPlaying}
-          />
+
+          
           <Button onPress={ ()=>{
               if (!searchInProgress)
                 this.fetchRec({
@@ -187,6 +171,12 @@ export default class HomeScreen extends React.Component {
                   limit: 40,
                 })}}
             title="Discover"
+            buttonStyle={styles.topBtn}
+            titleStyle={{
+              color: "white",
+              fontSize: 14,
+            }}
+            loading={searchInProgress ? true : false}
           />
 
           <Button onPress={ ()=>{
@@ -195,25 +185,60 @@ export default class HomeScreen extends React.Component {
                   timeRange: rand(["short_term", "medium_term", "long_term"]),
                   limit: 40,
                 })}} 
-            title="Recommend me something familiar"
+            title="Something familiar"
+            buttonStyle={styles.bottomBtn}
+            titleStyle={{
+              color: "white",
+              fontSize: 14,
+            }}
+            loading={searchInProgress ? true : false}
           />
+
+          { this.saveTrack() }
 
       </View>
     );
   }
 }
 
-HomeScreen.navigationOptions = {
-  header: null,
-};
+const mapStateToProps = state => {
+  return {
+    nowPlaying: state.nowPlaying,
+    playerParams: state.playerParams
+  }
+}
+
+const setNowPlaying = (track) => ({ type: 'SET_NOWPLAYING', track })
+
+const mapDispatchToProps = dispatch => {
+  return {
+    setNowPlaying: (track) => dispatch(setNowPlaying(track))
+  }
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen)
 
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     justifyContent: "center",
     backgroundColor: '#fff',
+  },
+  topBtn: {
+    borderRadius: 20,
+    width: 150,
+    marginTop: 10,
+    marginBottom: 10,
+    backgroundColor: "#153737"
+  },
+  bottomBtn: {
+    borderRadius: 20,
+    width: 150,
+    marginBottom: 10,
+    backgroundColor: "#153737"
   },
   albumCover: {
     width: 250,

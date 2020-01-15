@@ -8,11 +8,21 @@ const SPYURL = (id) => {
             categories: {
                 baseURL: 'https://api.spotify.com/v1/browse/categories'
             },
+            recommendations: {
+                baseURL: 'https://api.spotify.com/v1/recommendations',
+                genreSeeds: 'https://api.spotify.com/v1/recommendations/available-genre-seeds'
+            },
             search: {
-                baseURL:'https://api.spotify.com/v1/search/'
+                baseURL:'https://api.spotify.com/v1/search/',
+                audioFeatures: 'https://api.spotify.com/v1/audio-features'
             },
             user: {
-                topArtists: 'https://api.spotify.com/v1/me/top/artists/'
+                topArtists: 'https://api.spotify.com/v1/me/top/artists/',
+                topTracks: 'https://api.spotify.com/v1/me/top/tracks/',
+                profile: 'https://api.spotify.com/v1/me',
+                createPlayList: `https://api.spotify.com/v1/users/${id}/playlists`,
+                addToPlayList: `https://api.spotify.com/v1/playlists/${id}/tracks`,
+                saveTrack: `https://api.spotify.com/v1/me/tracks/?ids=${id}`
             }
         }
     )
@@ -47,16 +57,32 @@ const YTURL = () => {
 
 export const SPYfetchURL = (type, id) => {
     switch (type) {
-      case "user":
+      case "topArtists":
         return SPYURL().user.topArtists
+      case "topTracks":
+        return SPYURL().user.topTracks
+      case "genreSeeds":
+        return SPYURL().recommendations.genreSeeds
       case "rltdArt":
         return SPYURL(id).artist.related
       case "album":
         return SPYURL(id).artist.albums
       case "track":
         return SPYURL(id).artist.tracks
+      case "playlist":
+        return SPYURL().recommendations.baseURL
       case "search":
         return SPYURL().search.baseURL
+      case "audioFeatures":
+        return SPYURL().search.audioFeatures
+      case "profile":
+        return SPYURL().user.profile
+      case "createPlayList":
+        return SPYURL(id).user.createPlayList
+      case "addToPlayList":
+        return SPYURL(id).user.addToPlayList
+      case "saveTrack":
+        return SPYURL(id).user.saveTrack
       default:
         return undefined
     }
