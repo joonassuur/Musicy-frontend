@@ -1,12 +1,8 @@
 import { AppLoading } from 'expo';
-//import { Asset } from 'expo-asset';
-import * as Font from 'expo-font';
-import React, { useState } from 'react';
-import { Platform, StatusBar, StyleSheet, View, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Platform, StatusBar, StyleSheet, View, AppState } from 'react-native';
 import {createStore} from 'redux';
 import {Provider} from 'react-redux';
-import { Ionicons } from '@expo/vector-icons';
-
 import AppNavigator from './navigation/AppNavigator';
 
 
@@ -32,6 +28,8 @@ const reducer = (state = initialState, action) => {
 const store = createStore(reducer)
 
 export default function App(props) {
+
+
   const [isLoadingComplete, setLoadingComplete] = useState(false);
 
   if (!isLoadingComplete && !props.skipLoadingScreen) {
@@ -52,6 +50,7 @@ export default function App(props) {
       </Provider>
     );
   }
+
 }
 
 async function loadResourcesAsync() {

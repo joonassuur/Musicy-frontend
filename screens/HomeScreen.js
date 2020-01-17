@@ -1,20 +1,18 @@
 import React from 'react';
 import {
   Image,
-  Platform,
-  ScrollView,
   StyleSheet,
-  Text,
   AsyncStorage,
-  TouchableOpacity,
   View,
+  AppState
 } from 'react-native';
 import {connect} from 'react-redux'
 import { Icon, Button } from 'react-native-elements'
+import { LinearGradient } from 'expo-linear-gradient';
 
-import AudioPlayer from '../components/AudioPlayer';
 import fetchFuncs from '../FetchFunctions';
-import {rand, log, last, secondObj} from "../methods";
+import {rand, log, secondObj} from "../methods";
+
 
 let viewedTracks = []
 
@@ -51,49 +49,6 @@ class HomeScreen extends React.Component {
     })
   }
 
-  saveTrack = () => {
-    if (this.props.nowPlaying.id !== null) {
-      fetchFuncs()
-
-      //display heart icon, indicating that the track can either be liked or removed from likes
-      return(
-        <View>
-          { !this.state.saved &&
-            <Icon
-              name='ios-heart-empty'
-              type='ionicon'
-              color='#000'
-              onPress={ async () => {
-                  //add track to user's favorites
-                  let res = await saveTrack("save", this.props.nowPlaying.id)
-                  if (res === 200) {
-                    this.setState({saved: true});
-                  }
-                }
-              }
-            />
-          }
-
-          { this.state.saved &&
-            <Icon
-              name='ios-heart'
-              type='ionicon'
-              color='#000'
-              onPress={ async () => {
-                  //remove track to user's favorites
-                  let res = await saveTrack("remove", this.props.nowPlaying.id)
-                  if (res === 200) {
-                    this.setState({saved: false});
-                  }
-                }
-              }
-            />
-          }
-        </View>
-
-      )
-    }
-  }
 
   fetchRec = async (arg = {}) => {
     
@@ -147,23 +102,42 @@ class HomeScreen extends React.Component {
     this.fetchRec(arg)
   }
 
-  componentDidMount = async () => {
-    await this.setToken();
-    //this.clearAll();   
+
+  restartOnFocus = () => {
+    //restarts the auth process when the app gains focus (for a new oAuth token)
+    if (AppState.currentState === "active"){
+      this.props.navigation.navigate('Auth');
+    }
   }
 
+  componentDidMount = async () => {
+    await this.setToken();
+    //this.clearAll();  
+    AppState.addEventListener("change", ()=> this.restartOnFocus() ); 
+  }
   
   render() {
     const {searchInProgress} = this.state
+    const remoteImage = this.props.nowPlaying.imageSource
 
     return (
       <View style={styles.container}>
+        <LinearGradient
+          style={ styles.gradient }
+          colors={['#F2994A', '#F2C94C']}
+          >
 
-          <Image style={styles.albumCover}
-                 source={{ uri: this.props.nowPlaying.imageSource || "https://semantic-ui.com/images/wireframe/square-image.png" }}
-          />
+          { remoteImage ?
+            <Image style={styles.albumCover}
+                   source={{uri: remoteImage} }
+            /> :
+            <Icon name='ios-musical-notes'
+                  type='ionicon'
+                  color='#334d4d'
+                  size={150}
+            />
+          }
 
-          
           <Button onPress={ ()=>{
               if (!searchInProgress)
                 this.fetchRec({
@@ -173,7 +147,7 @@ class HomeScreen extends React.Component {
             title="Discover"
             buttonStyle={styles.topBtn}
             titleStyle={{
-              color: "white",
+              color: "#fff",
               fontSize: 14,
             }}
             loading={searchInProgress ? true : false}
@@ -188,14 +162,13 @@ class HomeScreen extends React.Component {
             title="Something familiar"
             buttonStyle={styles.bottomBtn}
             titleStyle={{
-              color: "white",
+              color: "#fff",
               fontSize: 14,
             }}
             loading={searchInProgress ? true : false}
           />
 
-          { this.saveTrack() }
-
+        </LinearGradient>
       </View>
     );
   }
@@ -225,20 +198,26 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: '#fff',
+  },
+  gradient: {
+    flex:1,
+    height: "100%",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   topBtn: {
     borderRadius: 20,
     width: 150,
     marginTop: 10,
     marginBottom: 10,
-    backgroundColor: "#153737"
+    backgroundColor: "#669999",
   },
   bottomBtn: {
     borderRadius: 20,
     width: 150,
     marginBottom: 10,
-    backgroundColor: "#153737"
+    backgroundColor: "#669999"
   },
   albumCover: {
     width: 250,

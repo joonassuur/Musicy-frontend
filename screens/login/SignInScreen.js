@@ -1,12 +1,11 @@
 import React from 'react';
 import { 
     View, 
-    TextInput,
-    Button, 
-    Text, 
     AsyncStorage, 
     StyleSheet 
 } from 'react-native';
+import { Button } from 'react-native-elements'
+import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
 const SignInScreen = ( props ) => {
@@ -32,31 +31,15 @@ const SignInScreen = ( props ) => {
 
     return (
         <View style={styles.container}>
-            <Button 
-                title="Log in with Spotify" 
-                onPress={ () => navigate('SpotWebView') }
-            /> 
-{/*             <Text>Or</Text>
-            <View style={{flexDirection: "row" }}>
-                <TextInput
-                    placeholder="Enter your LastFM username"
-                    style={{ height: 40, borderColor: 'gray', borderWidth: 1, color: "#000" }}
-                    onChangeText={text => setState(text)}
-                    value={value}
-                />
-                <Button
-                    title="Go"
-                    onPress={ () => setLFMuser(value) }
-                />
-            </View>
-
-            <Text>Or</Text>
-            <Text
-                onPress={ ()=> SPYloginSkip() }
-            >
-                skip login 
-            </Text>
-            <Text>(data will be lost if app is removed)</Text> */}
+            <LinearGradient
+                style={ styles.gradient }
+                colors={['#F2994A', '#F2C94C']}>
+                <Button 
+                    buttonStyle={styles.button}
+                    title="Log in with Spotify" 
+                    onPress={ () => navigate('SpotWebView') }
+                /> 
+            </LinearGradient>
         </View>
     )
 }
@@ -69,6 +52,19 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    gradient: {
+        flex:1,
+        height: "100%",
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    button: {
+        borderRadius: 20,
+        paddingLeft: 20,
+        paddingRight: 20,
+        backgroundColor: "#669999"
     },
 });
 

@@ -7,14 +7,16 @@ import HomeScreen from '../screens/HomeScreen';
 import PlayListScreen from '../screens/PlayListScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AudioPlayer from '../components/AudioPlayer';
-import {connect} from 'react-redux'
+import {connect} from 'react-redux';
+
 const config = Platform.select({
   web: { headerMode: 'screen' },
   default: {},
 });
 
 
-const MainStack = createBottomTabNavigator({
+const MainStack = createBottomTabNavigator(
+  {
     Home: {
       screen: HomeScreen,
       navigationOptions: {
@@ -24,8 +26,8 @@ const MainStack = createBottomTabNavigator({
               focused={focused}
               name={
                 Platform.OS === 'ios'
-                  ? `ios-information-circle${focused ? '' : '-outline'}`
-                  : 'md-information-circle'
+                  ? `ios-musical-note${focused ? '' : '-outline'}`
+                  : 'md-musical-note'
               }
             />
           ),
@@ -36,7 +38,7 @@ const MainStack = createBottomTabNavigator({
       navigationOptions: {
         tabBarLabel: 'Playlist Generator',
         tabBarIcon: ({ focused }) => (
-          <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-link' : 'md-link'} />
+          <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-flash' : 'md-flash'} />
         ),
       }
     },
@@ -48,29 +50,21 @@ const MainStack = createBottomTabNavigator({
           <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-options' : 'md-options'} />
         ),
       }
+    }, 
+  },
+  {
+    tabBarOptions: { 
+      style: {
+        backgroundColor: '#669999'
+       },
+      activeTintColor: '#F2C94C',
+      inactiveTintColor: '#fff',
     },
-});
+  });
 
 
 MainStack.path = '';
 
-
-const AppContainer = createAppContainer(MainStack);
-
-function Music(props) {
-
-  return(
-    <View style={{ flex: 1 }}>
-      <View style={styles.player}>
-        { props.nowPlaying.uri ?
-          <AudioPlayer
-            style={ { backgroundColor: "#000" } }
-          /> : <Text style={{color:"#fff"}}>Please select a song to preview</Text> }
-      </View>
-      <AppContainer />
-    </View>
-  )
-}
 
 const mapStateToProps = state => {
   return {
@@ -80,7 +74,7 @@ const mapStateToProps = state => {
 }
 
 
-export default connect(mapStateToProps)(Music)
+export default connect(mapStateToProps)(MainStack)
 
 
 const styles = StyleSheet.create({
@@ -92,7 +86,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "flex-end",
     width: "100%",
-    backgroundColor: "#000"
+    backgroundColor: "#800000"
   }
 
 });

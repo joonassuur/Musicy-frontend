@@ -6,10 +6,11 @@ import {
     StyleSheet,
     Text
 } from 'react-native';
-
+import { Icon } from 'react-native-elements'
 import {Audio} from 'expo-av';
 import {connect} from 'react-redux'
 import { Ionicons } from '@expo/vector-icons';
+import fetchFuncs from '../FetchFunctions';
 import {omitLast, log} from "../methods"
 
 class AudioPlayer extends React.Component {
@@ -18,7 +19,8 @@ class AudioPlayer extends React.Component {
         isPlaying: false,
         playbackInstance: null,
         volume: 1.0,
-        isBuffering: false
+        isBuffering: false,
+        saved: false
     }
 
     handlePlayPause = async () => {
@@ -51,6 +53,7 @@ class AudioPlayer extends React.Component {
     
             playbackInstance.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate)    
             await playbackInstance.loadAsync(source, status, false)
+            this.setState({saved: false})
             this.setState({playbackInstance})
 
         } catch (e) {
@@ -95,8 +98,8 @@ class AudioPlayer extends React.Component {
             playsInSilentModeIOS: false,
             interruptionModeAndroid: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
             shouldDuckAndroid: false,
-            staysActiveInBackground: true,
-            playThroughEarpieceAndroid: false
+            staysActiveInBackground: false,
+            playThroughEarpieceAndroid: true
         })
         } catch (e) {
             console.log(e)
@@ -120,18 +123,65 @@ class AudioPlayer extends React.Component {
         )
     }
 
+    saveTrack = () => {
+        if (this.props.nowPlaying.id !== null) {
+          fetchFuncs()
+    
+          //display heart icon, indicating that the track can either be liked or removed from likes
+          return(
+            <View style={styles.heart}>
+              { !this.state.saved &&
+                <Icon
+                  name='ios-heart-empty'
+                  type='ionicon'
+                  color='#fff'
+                  onPress={ async () => {
+                      //add track to user's favorites
+                      let res = await saveTrack("save", this.props.nowPlaying.id)
+                      if (res === 200) {
+                        this.setState({saved: true});
+                      }
+                    }
+                  }
+                />
+              }
+    
+              { this.state.saved &&
+                <Icon
+                  name='ios-heart'
+                  type='ionicon'
+                  color='#fff'
+                  onPress={ async () => {
+                      //remove track to user's favorites
+                      let res = await saveTrack("remove", this.props.nowPlaying.id)
+                      if (res === 200) {
+                        this.setState({saved: false});
+                      }
+                    }
+                  }
+                />
+              }
+            </View>
+    
+          )
+        }
+      }
+
     render() {
         return(
             <View style={styles.container}>
                 <TouchableOpacity onPress={this.handlePlayPause}>
                     {this.state.isPlaying ? (
-                    <Ionicons name='ios-pause' size={48} color='#808080' />
+                    <Ionicons name='ios-pause' size={48} color='#fff' />
                     ) : (
-                    <Ionicons name='ios-play-circle' size={48} color='#808080' />
+                    <Ionicons name='ios-play-circle' size={48} color='#fff' />
                     )}
                 </TouchableOpacity>
 
-                {this.renderFileInfo()}
+                { this.renderFileInfo() }
+
+                { this.saveTrack() }
+                
             </View>
         )
     }
@@ -147,20 +197,27 @@ export default connect(mapStateToProps)(AudioPlayer)
 
 const styles = StyleSheet.create({
     container: {
-      backgroundColor: '#000',
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    trackInfo: {
+        marginTop: 10,
+        marginBottom: 10
     },
     trackInfoText: {
       textAlign: 'center',
       flexWrap: 'wrap',
-      color: '#fff'
+      color: '#fff',
+    },
+    heart: {
+        
     },
     largeText: {
+      fontWeight: "bold",
       fontSize: 12
     },
     smallText: {
-      fontSize: 9
+      fontSize: 10
     },
 
   })

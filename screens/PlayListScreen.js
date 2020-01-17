@@ -1,6 +1,5 @@
 import React, { useState, useEffect  } from 'react';
 import {  
-  Alert,
   ActivityIndicator,
   AsyncStorage,
   View, 
@@ -8,20 +7,20 @@ import {
   Text,
   Picker,
   ScrollView,
-  TouchableOpacity
 } from 'react-native';
 import {connect} from 'react-redux'
 import { ListItem, Icon, Button } from 'react-native-elements'
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import fetchFuncs from '../FetchFunctions';
-import {rand, log, last, secondObj} from "../methods";
-import AudioPlayer from '../components/AudioPlayer';
+import {log} from "../methods";
 
 let playList = []
 let failCount = 0
 
 function LinksScreen(props) {
+
+  const textColor = "#fff"
 
   //state hooks
   const [mood, setMood] = useState('general');
@@ -41,18 +40,19 @@ function LinksScreen(props) {
     setPlayList(true)
   }
 
-  handlePlayPause = (uri, title, artist, key) => {
+  handlePlayPause = (uri, title, artist, key, id) => {
+    
+    let slicedID = id.slice(14)    
+
     if (uri)
       props.setNowPlaying({        
         title: title,
-        id: null,
+        id: slicedID,
         artist: artist,
         uri: uri,          
         imageSource: null,
         key: key
       })
-
-      //setSong({ uri: uri, title: title, artist: artist, key: key })
   }
 
   renderPlayList = () => {
@@ -62,20 +62,27 @@ function LinksScreen(props) {
       return(
         <View style={styles.playListCont}>
           <ScrollView>
-          { playList.map((l, i) => (
+            { playList.map((l, i) => (
               <ListItem
-                titleStyle={{ fontSize: 14 }}
-                subtitleStyle={{ fontSize: 12 }}
+                titleStyle={{ fontSize: 13, color: textColor, fontWeight: "bold" }}
+                containerStyle={styles.listItem}
+                subtitleStyle={{ fontSize: 12, color: textColor }}
                 key={i}
                 title={l.song}
                 subtitle={l.artist}
-                onPress={()=> this.handlePlayPause(l.preview, l.song, l.artist, i)}
+                onPress={()=> this.handlePlayPause(l.preview, l.song, l.artist, i, l.id)}
                 rightElement={ 
-                  !l.preview && 
-                  <Text style={{fontSize: 9, fontStyle: "italic"}}>
+                  !l.preview ? 
+                  <Text style={{fontSize: 9, fontStyle: "italic", color: textColor}}>
                     Preview not available
-                  </Text> }
-                bottomDivider
+                  </Text> :
+                  <Icon
+                    name='ios-play'
+                    type='ionicon'
+                    color={textColor}
+                  />  
+                }
+                
               /> )) }
           </ScrollView>
         </View>
@@ -128,15 +135,70 @@ function LinksScreen(props) {
     fetchFuncs() 
   });  
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      flexDirection: "column",
+      justifyContent: "center",
+    },
+    gradient: {
+      flex:1,
+      height: "100%",
+      width: "100%",
+      alignItems: "center",
+      flexDirection: "column",
+      justifyContent: "center",
+    },
+    menu: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    button: {
+      borderRadius: 20,
+      paddingLeft: 10,
+      paddingRight: 10,
+      backgroundColor: "#669999"
+    },
+    playListIcon: {
+      marginLeft: 10
+    },
+    spinner: {
+      flex: 100,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    playListCont: {
+      flex: 4,
+      width:"100%",
+    },
+    listItem: {
+      backgroundColor: "#66999980", 
+      borderTopWidth: 1.5, 
+      borderTopColor: textColor,
+    },
+    player: {
+      height: 100,
+      justifyContent: "center",
+      alignItems: "center",
+      width: "100%",
+      backgroundColor: "#000"
+    }
+  
+  });
+
   return (
     <View style={styles.container}>
+      <LinearGradient
+        style={ styles.gradient }
+        colors={['#F2994A', '#F2C94C']}
+      >
       
-      <Text>Select mood to generate playlist</Text>
       
       <View style={styles.menu}>
         <Picker
           selectedValue={mood}
-          style={ { height: 50, width: 150 } }
+          style={ { height: 50, width: 150, color: textColor } }
           onValueChange={ (itemValue) => setMood(itemValue) }
           >
           <Picker.Item label="General" value="general" />
@@ -150,7 +212,7 @@ function LinksScreen(props) {
           title="Generate playlist"
           buttonStyle={styles.button}
           titleStyle={{
-            color: "white",
+            color: "#fff",
             fontSize: 14,
           }}
         />
@@ -160,12 +222,12 @@ function LinksScreen(props) {
               <Icon
                 name='playlist-add-check'
                 type='material'
-                color='#000'
+                color={textColor}
               /> :
               <Icon
                 name='playlist-add'
                 type='material'
-                color='#000'
+                color={textColor}
                 onPress={ ()=> addPlayList() }
               /> }
         </View>
@@ -173,12 +235,12 @@ function LinksScreen(props) {
 
       { loading &&
           <View style={styles.spinner}>
-            <ActivityIndicator size='large' />
+            <ActivityIndicator size='large' color="#fff"/>
           </View>
       }
 
       { this.renderPlayList() }
-
+      </LinearGradient>
     </View>
   );
 }
@@ -205,43 +267,4 @@ const mapDispatchToProps = dispatch => {
 
 export default connect(mapStateToProps, mapDispatchToProps)(LinksScreen)
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    flexDirection: "column",
-    justifyContent: "center",
-    backgroundColor: '#fff',
-  },
-  menu: {
-    backgroundColor: '#fff',
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  button: {
-    borderRadius: 20,
-    paddingLeft: 10,
-    paddingRight: 10,
-    backgroundColor: "#153737"
-  },
-  playListIcon: {
-    marginLeft: 10
-  },
-  spinner: {
-    flex: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  playListCont: {
-    flex: 4,
-    width:"100%"
-  },
-  player: {
-    height: 100,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    backgroundColor: "#000"
-  }
 
-});
