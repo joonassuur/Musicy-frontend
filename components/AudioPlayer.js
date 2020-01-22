@@ -53,8 +53,10 @@ class AudioPlayer extends React.Component {
     
             playbackInstance.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate)    
             await playbackInstance.loadAsync(source, status, false)
-            this.setState({saved: false})
-            this.setState({playbackInstance})
+            this.setState({saved: false, playbackInstance})
+
+            if (!isPlaying)
+                this.handlePlayPause()
 
         } catch (e) {
             console.log(e)
@@ -107,7 +109,6 @@ class AudioPlayer extends React.Component {
 
         this.loadAudio()
     }
-
 
     renderFileInfo() {
         const { playbackInstance } = this.state

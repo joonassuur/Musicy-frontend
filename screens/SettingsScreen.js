@@ -19,6 +19,8 @@ export default function SettingsScreen(props) {
       await AsyncStorage.clear()
       RCTNetworking.clearCookies(() => {});
       props.navigation.navigate('Auth');
+
+      //TODO: NEED TO ALSO UNLOAD TRACK
     } catch(e) {
       // clear error
     }   

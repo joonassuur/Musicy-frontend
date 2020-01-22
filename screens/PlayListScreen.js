@@ -82,7 +82,6 @@ function LinksScreen(props) {
                     color={textColor}
                   />  
                 }
-                
               /> )) }
           </ScrollView>
         </View>
@@ -107,11 +106,11 @@ function LinksScreen(props) {
 
     recoms = await generatePlayList({
       timeRange: "medium_term", 
-      limit: 10,
+      limit: 50,
       mood: mood
     });
 
-    if (recoms && recoms.length > 5) {
+    if (recoms && recoms.length > 10) {
 
       failCount = 0
       recoms.map(e=>{
@@ -193,51 +192,49 @@ function LinksScreen(props) {
         style={ styles.gradient }
         colors={['#F2994A', '#F2C94C']}
       >
-      
-      
-      <View style={styles.menu}>
-        <Picker
-          selectedValue={mood}
-          style={ { height: 50, width: 150, color: textColor } }
-          onValueChange={ (itemValue) => setMood(itemValue) }
-          >
-          <Picker.Item label="General" value="general" />
-          <Picker.Item label="Uplifting" value="uplifting" />
-          <Picker.Item label="Energetic" value="energetic" />
-          <Picker.Item label="Calm/Relaxed" value="calm" />
-          <Picker.Item label="Gloomy" value="gloomy" />
-        </Picker>
+        <View style={styles.menu}>
+          <Picker
+            selectedValue={mood}
+            style={ { height: 50, width: 150, color: textColor } }
+            onValueChange={ (itemValue) => setMood(itemValue) }
+            >
+            <Picker.Item label="General" value="general" />
+            <Picker.Item label="Uplifting" value="uplifting" />
+            <Picker.Item label="Energetic" value="energetic" />
+            <Picker.Item label="Calm/Relaxed" value="calm" />
+            <Picker.Item label="Gloomy" value="gloomy" />
+          </Picker>
 
-        <Button onPress={ ()=> this.handlePlaylist() }
-          title="Generate playlist"
-          buttonStyle={styles.button}
-          titleStyle={{
-            color: "#fff",
-            fontSize: 14,
-          }}
-        />
+          <Button onPress={ ()=> this.handlePlaylist() }
+            title="Generate playlist"
+            buttonStyle={styles.button}
+            titleStyle={{
+              color: "#fff",
+              fontSize: 14,
+            }}
+          />
 
-        <View style={styles.playListIcon}>
-          { playListAdded ?
-              <Icon
-                name='playlist-add-check'
-                type='material'
-                color={textColor}
-              /> :
-              <Icon
-                name='playlist-add'
-                type='material'
-                color={textColor}
-                onPress={ ()=> addPlayList() }
-              /> }
-        </View>
-      </View>
-
-      { loading &&
-          <View style={styles.spinner}>
-            <ActivityIndicator size='large' color="#fff"/>
+          <View style={styles.playListIcon}>
+            { playListAdded ?
+                <Icon
+                  name='playlist-add-check'
+                  type='material'
+                  color={textColor}
+                /> :
+                <Icon
+                  name='playlist-add'
+                  type='material'
+                  color={textColor}
+                  onPress={ ()=> addPlayList() }
+                /> }
           </View>
-      }
+        </View>
+
+        { loading &&
+            <View style={styles.spinner}>
+              <ActivityIndicator size='large' color="#fff"/>
+            </View>
+        }
 
       { this.renderPlayList() }
       </LinearGradient>

@@ -146,7 +146,7 @@ export default SPY = async () => {
                 return recoms;
 
             case "audioFeatures":
-                let features = [[],[],[],[],[]],
+                let features = [[],[],[],[],[],[],[]],
                     reducer = (accumulator, currentValue) => accumulator + currentValue;
 
                 res.data.audio_features.map(e=>{
@@ -155,6 +155,8 @@ export default SPY = async () => {
                     features[2].push(e.valence)
                     features[3].push(e.tempo)
                     features[4].push(e.acousticness)
+                    features[5].push(e.instrumentalness)
+                    features[6].push(e.loudness)
                 })
 
                 let averages = features.map( e => (e.reduce(reducer)/e.length) )
@@ -202,18 +204,21 @@ export default SPY = async () => {
                     target_tempo: attributes.target_tempo,
                     target_acousticness: attributes.target_acousticness,
                     target_instrumentalness: attributes.target_instrumentalness,
+                    target_loudness: attributes.target_loudness,
                     min_danceability: attributes. min_danceability,
                     min_energy: attributes.min_energy,
                     min_valence: attributes.min_valence,
                     min_tempo: attributes.min_tempo,
                     min_acousticness: attributes.min_acousticness,
                     min_instrumentalness: attributes.min_instrumentalness,
+                    min_loudness: attributes.min_loudness,
                     max_danceability: attributes. max_danceability,
                     max_energy: attributes.max_energy,
                     max_valence: attributes.max_valence,
                     max_tempo: attributes.max_tempo,
                     max_acousticness: attributes.max_acousticness,
                     max_instrumentalness: attributes.max_instrumentalness,
+                    max_loudness: attributes.max_loudness,
                 })
             case "audioFeatures":
                 return({

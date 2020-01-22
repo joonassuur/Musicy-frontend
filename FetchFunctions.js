@@ -132,31 +132,27 @@ export default async () => {
                     target_acousticness: audioFeatures[4]
                 })
             case "uplifting":
-                //perfect!
                 return ({
-                    min_danceability: 0.4,
-                    min_valence: 0.65,
-                    min_energy: 0.4,
+                    min_valence: 0.7,
+                    min_danceability: 0.5
                 })
             case "energetic":
                 return ({
-                    min_energy: 0.6,
-                    min_valence: 0.4,
-                    min_tempo: 100,
-                    max_acousticness: 0.4
+                    min_energy: 0.7,
+                    min_loudness: -30,
+                    min_valence: 0.5,
+                    min_tempo: 145,
+                    max_acousticness: 0.4,
                 })
             case "calm":
                 return ({
-                    max_energy: 0.52,
-                    max_tempo: 99,
-                    min_valence: 0.2,
-                    min_danceability: 0.2,
-                    max_danceability: 0.7,
+                    max_energy: 0.5,
+                    max_tempo: 90,
+                    min_valence: 0.4,
                 })
             case "gloomy":
                 return ({
-                    max_valence: 0.3,
-                    max_energy: 0.4,
+                    max_valence: 0.4,
                     max_danceability: 0.5
                 })
             default: return;
@@ -171,21 +167,32 @@ export default async () => {
             mood: arg.mood || "general"
         }
 
-        let fetchUserTopArt = await fetchUserTop(arg.timeRange, arg.limit),
-            fetchUserTopTracks = await fetchUserTop(arg.timeRange, arg.limit, "userTopTracks"),
-            fetchRelatedArt = await fetchRecomArt(false, arg.timeRange, arg.limit), // make it so it returns more than 1 value
+        let fetchUserTopArt = await fetchUserTop(arg.timeRange, 50),
+            fetchUserTopTracks = await fetchUserTop(arg.timeRange, 50, "userTopTracks"),
+            fetchRelatedArt = await fetchRecomArt(false, arg.timeRange, 50), //fetch a related artist to user's top
             topArtists = fetchUserTopArt.map(e=>e[1]).flat(Infinity),
             topTracks = fetchUserTopTracks.map(e=>e[1]).flat(Infinity),
             topGenres = fetchUserTopArt.map(e=>e[2]).flat(Infinity),   
-            seedableGenres = await fetchSeedGenres(topGenres)
+            seedableGenres = await fetchSeedGenres(topGenres),
+            randomlyPickedArtists = [];
+        
+        pickRandomTop5 = () => {
+            randTopArtist = () => {
+                return topArtists[Math.floor(Math.random() * topArtists.length)];
+            }
+            for (let i = 0; i < 3; i ++) {
+                if ( !randomlyPickedArtists.includes(randTopArtist()) )
+                    randomlyPickedArtists.push(randTopArtist())
+            }
+        }
+        pickRandomTop5()
+        
+        seedableGenres.splice(5)
+        topTracks.splice(3)        
 
-        topArtists.splice(2)
-        seedableGenres.splice(3)
-
-        topTracks.splice(3)
-       
-
-        topArtists.push(fetchRelatedArt)
+        //add a related artist to the user's top artists array
+        if (!randomlyPickedArtists.includes(fetchRelatedArt))
+            randomlyPickedArtists.push(fetchRelatedArt) 
 
         //do analysis on user's top tracks
         //[0] = danceability, [1] = energy, [2] = valence, [3] = tempo, [4] = acousticness
@@ -195,20 +202,19 @@ export default async () => {
             searchTerm: topTracks.join()
         });
 
-        
-        //fetch recommendations based on user's top tracks analysis
+        console.log(randomlyPickedArtists)
+        //fetch recommendations based on user's top played analysis
         let recoms = await makeReq({
             url: SPYfetchURL("playlist"), 
             type: "seedsRecom",
             limit: arg.limit,
             seeds: {
-                seed_artists: topArtists.join(), //fetchRelatedArt, //take random related artist with every request
+                seed_artists: randomlyPickedArtists.join(),
                 seed_genres: undefined,
                 seed_tracks: undefined,
                 attributes: await this.fetchAttr(arg.mood, audioFeatures)
             }
         }); 
-
         return recoms 
     }
 
