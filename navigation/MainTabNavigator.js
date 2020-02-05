@@ -1,12 +1,10 @@
 import React from 'react';
-import { Platform, View, Text, StyleSheet } from 'react-native';
-import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
-import { createAppContainer } from 'react-navigation';
+import { Platform, StyleSheet } from 'react-native';
+import { createBottomTabNavigator } from 'react-navigation';
 import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/HomeScreen';
 import PlayListScreen from '../screens/PlayListScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import AudioPlayer from '../components/AudioPlayer';
 import {connect} from 'react-redux';
 
 const config = Platform.select({

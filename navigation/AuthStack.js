@@ -1,4 +1,4 @@
-import { createStackNavigator, createSwitchNavigator } from 'react-navigation';
+import { createSwitchNavigator } from 'react-navigation';
 
 import SignInScreen from '../screens/login/SignInScreen';
 import SpotWebViewScreen from '../screens/login/SpotWebViewScreen';
@@ -13,7 +13,6 @@ export default AuthStack = createSwitchNavigator(
         SignIn: SignInScreen,
     },
     {
-
         initialRouteName: 'AuthLoading',
     },
     

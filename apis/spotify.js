@@ -135,14 +135,19 @@ export default SPY = async () => {
                 //get all available genres that can be used as seeds
                 return res.data.genres
 
+            case "getArtist":
+                //get info on an artist. currently returns genres
+                return res.data.artists[0].genres;
+
             case "seedsRecom":
                 log("seedsRecom...")
                 //get recommendations based on seeds
                 let recoms = []
-
+                
                 res.data.tracks.map( e=> {
                     recoms.push([e.id, e.name, e.artists[0].name, e.preview_url ])
                 })
+
                 return recoms;
 
             case "audioFeatures":

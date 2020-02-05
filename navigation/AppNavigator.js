@@ -24,6 +24,7 @@ const AppContainer = createAppContainer(RootNav);
 function CombinedComponents(props) {
 
   const [authFinished, setAuthFinished] = useState(false);
+  const theme = props.theme;
 
   function getActiveRouteName(navigationState) {
     if (!navigationState) {
@@ -35,15 +36,30 @@ function CombinedComponents(props) {
       return getActiveRouteName(route);
     }
     return route.routeName;
-  }
+  }  
+
+
+  const styles = StyleSheet.create({
+
+    player: {
+      paddingTop: 40,
+      paddingBottom: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      alignSelf: "flex-end",
+      width: "100%",
+      backgroundColor: theme.playerBG
+    }
+  
+  });
 
   return(
     <View style={{ flex: 1 }}>
       { authFinished &&
           <View style={styles.player}>
             { props.nowPlaying.uri ?
-              <AudioPlayer/> : 
-              <Text style={{color:"#fff"}}>Please select a song to preview</Text> }
+              <AudioPlayer shouldLogout={props.shouldLogout} /> : 
+              <Text style={{color:theme.text}}>Please select a song to preview</Text> }
           </View>
       }
       <AppContainer
@@ -63,23 +79,13 @@ function CombinedComponents(props) {
 const mapStateToProps = state => {
   return {
     nowPlaying: state.nowPlaying,
-    playerParams: state.playerParams
+    playerParams: state.playerParams,
+    shouldLogout: state.shouldLogout,
+    theme: state.theme
   }
 }
 
 export default connect(mapStateToProps)(CombinedComponents)
 
-const styles = StyleSheet.create({
 
-  player: {
-    paddingTop: 40,
-    paddingBottom: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "flex-end",
-    width: "100%",
-    backgroundColor: "#669999"
-  }
-
-});
 

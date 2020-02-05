@@ -17,14 +17,16 @@ export default SpotWebViewScreen = (props) => {
             setLoading(false)
 
         if (e.url.indexOf('https://spot-auth-backend.herokuapp.com/auth_success?') !== -1) {
+            
             setLoading(true)
             let token = e.url.split("access_token=")[1];
+            await AsyncStorage.setItem('SPYauthToken', token)
             let ID = await makeReq({
                 url: SPYfetchURL("profile"),
                 type: "profile"
             });
+
             try {
-                await AsyncStorage.setItem('SPYauthToken', token)
                 await AsyncStorage.setItem('spotifyID', ID)
                 props.navigation.navigate('Main');
             } catch(e) {

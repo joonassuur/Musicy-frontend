@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Image,
+    ActivityIndicator,
     TouchableOpacity,
     View,
     StyleSheet,
@@ -11,23 +11,24 @@ import {Audio} from 'expo-av';
 import {connect} from 'react-redux'
 import { Ionicons } from '@expo/vector-icons';
 import fetchFuncs from '../FetchFunctions';
-import {omitLast, log} from "../methods"
+import {log} from "../methods"
 
 class AudioPlayer extends React.Component {
 
     state = {
         isPlaying: false,
-        playbackInstance: null,
         volume: 1.0,
         isBuffering: false,
-        saved: false
+        saved: false,
+        justFinished: false
     }
 
     handlePlayPause = async () => {
 
-        const { isPlaying, playbackInstance } = this.state
+        const { isPlaying } = this.state
+        const { playbackInstance, nowPlaying } = this.props
 
-        if (this.props.nowPlaying.uri) {
+        if (nowPlaying.uri) {
             
             isPlaying ? await playbackInstance.pauseAsync() : await playbackInstance.playAsync()
         
@@ -38,7 +39,9 @@ class AudioPlayer extends React.Component {
     }
 
     loadAudio = async () => {
-        const {isPlaying, volume} = this.state
+        const {isPlaying, volume, justFinished} = this.state
+
+        this.props.setLoading(true)
 
         try {
             const playbackInstance = new Audio.Sound()
@@ -53,10 +56,19 @@ class AudioPlayer extends React.Component {
     
             playbackInstance.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate)    
             await playbackInstance.loadAsync(source, status, false)
-            this.setState({saved: false, playbackInstance})
+            this.setState({saved: false})
 
-            if (!isPlaying)
+            this.props.setPlaybackInstance({playbackInstance})
+            this.props.setLoading(false)
+
+            if (justFinished) {
+              this.setState({justFinished: false})
+              return;
+            }
+
+            if (!isPlaying){
                 this.handlePlayPause()
+            }
 
         } catch (e) {
             console.log(e)
@@ -64,7 +76,7 @@ class AudioPlayer extends React.Component {
     }
    
     onPlaybackStatusUpdate = async status => {
-        const { playbackInstance } = this.state
+        const { playbackInstance } = this.props
 
         this.setState({
             isBuffering: status.isBuffering
@@ -72,27 +84,39 @@ class AudioPlayer extends React.Component {
 
         //reload song and stop playback once it reaches the end
         if ( status.didJustFinish ) {
-            this.handlePlayPause() 
-            await playbackInstance.unloadAsync()
-            this.loadAudio()
+            this.setState({justFinished: true}, async () => {
+              this.handlePlayPause();
+              await playbackInstance.unloadAsync()
+              this.loadAudio()
+            })
+
         } 
     }
 
     async componentDidUpdate(prevProps, prevState) {
-        const { playbackInstance } = this.state
+        const { playbackInstance, nowPlaying } = this.props
 
-        if (this.props.nowPlaying !== prevProps.nowPlaying) {
+        //get the logout command from SettingsScreen component and unload song, then reset redux state
+        if (this.props.shouldLogout) {
+            await playbackInstance.unloadAsync()
+            this.props.resetState()
+            return;
+        }
+
+        if (nowPlaying !== prevProps.nowPlaying) {
             if(playbackInstance) 
                 await playbackInstance.unloadAsync()
 
-            if (this.props.nowPlaying.uri) {
+            if (nowPlaying.uri) {
                 this.loadAudio()
             }
         }
     }
 
     async componentDidMount() {
-        
+
+        this.props.setLogout(false)
+
         try {
         await Audio.setAudioModeAsync({
             allowsRecordingIOS: false,
@@ -110,22 +134,25 @@ class AudioPlayer extends React.Component {
         this.loadAudio()
     }
 
+
     renderFileInfo() {
-        const { playbackInstance } = this.state
-        return playbackInstance && (
+        const { nowPlaying } = this.props
+        return (
             <View style={styles.trackInfo}>
                 <Text style={[styles.trackInfoText, styles.largeText]}>
-                    {this.props.nowPlaying.title}
+                    {nowPlaying.title}
                 </Text>
                 <Text style={[styles.trackInfoText, styles.smallText]}>
-                    {this.props.nowPlaying.artist}
+                    {nowPlaying.artist}
                 </Text>
             </View>
         )
     }
 
     saveTrack = () => {
+
         if (this.props.nowPlaying.id !== null) {
+
           fetchFuncs()
     
           //display heart icon, indicating that the track can either be liked or removed from likes
@@ -163,14 +190,19 @@ class AudioPlayer extends React.Component {
                 />
               }
             </View>
-    
           )
         }
       }
 
     render() {
-        return(
-            <View style={styles.container}>
+
+      const { playbackInstance, loading } = this.props
+
+      return(
+        <View>
+          {
+            playbackInstance ?
+              <View style={styles.container}>
                 <TouchableOpacity onPress={this.handlePlayPause}>
                     {this.state.isPlaying ? (
                     <Ionicons name='ios-pause' size={48} color='#fff' />
@@ -182,19 +214,42 @@ class AudioPlayer extends React.Component {
                 { this.renderFileInfo() }
 
                 { this.saveTrack() }
-                
-            </View>
-        )
+              </View> : 
+            loading ? 
+              <ActivityIndicator size='large' color="#fff"/> : 
+            undefined
+          }
+        </View>
+      )
     }
 }
 
 const mapStateToProps = state => {
     return {
-        nowPlaying: state.nowPlaying
+        nowPlaying: state.nowPlaying,
+        playbackInstance: state.playbackInstance,
+        shouldLogout: state.shouldLogout,
+        loading: state.loading,
+        theme: state.theme
     }
 }
 
-export default connect(mapStateToProps)(AudioPlayer)
+const setPlaybackInstance = (instance) => ({ type: 'SET_PLAYBACK_INSTANCE', instance })
+const setLogout = (x) => ({ type: 'SET_LOGOUT', x })
+const resetState = () => ({ type: 'RESET_STATE' })
+const setLoading = (x) => ({ type: 'SET_LOADING', x })
+
+const mapDispatchToProps = dispatch => {
+  return {
+    setPlaybackInstance: (instance) => dispatch(setPlaybackInstance(instance)),
+    setLogout: (x) => dispatch(setLogout(x)),
+    resetState: () => dispatch(resetState()),
+    setLoading: (x) => dispatch(setLoading(x))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(AudioPlayer)
+
 
 const styles = StyleSheet.create({
     container: {

@@ -1,10 +1,18 @@
 import makeReq from './apis/request';
 import {SPYfetchURL, LFMfetchURL} from './apis/URL';
-import {rand, log, last, secondObj} from "./methods";
+import {rand, log} from "./methods";
 
 //Spotify API request functions
 
 export default async () => {
+
+    fetchArtist = async (ids) => {
+        //get info on an artists. currently returns genres
+        return await makeReq({
+            url: SPYfetchURL("getArtist", ids), 
+            type: "getArtist",
+        })
+    }
 
     fetchUserTop = async (timeRange, limit, type) => {
         //get user's top artists/genres or tracks from Spotify
@@ -81,8 +89,9 @@ export default async () => {
     }
 
     fetchSeedGenres = async (topGenres) => {
+        //topGenres - user's top genres
         //fetch seedable genres and match them against user's top listened genres. returns the ones that match
-        let seedGenres = [],
+        let seedGenres = [], 
             regex = /-/gi
         
         let fetchGenreSeeds = await makeReq({
@@ -90,12 +99,12 @@ export default async () => {
             type: "genreSeeds"
         });
 
-        fetchGenreSeeds.map( e=>{
-            topGenres.map( l=> {
-               if(e.replace(regex, ' ') === l.replace(regex, ' '))  {
-                   if(!seedGenres.includes(e))
-                    seedGenres.push(e)
-               }
+        fetchGenreSeeds.map( e => {
+            topGenres.map( l => {
+                if ( l.includes(e) ) {
+                    if ( !seedGenres.includes(e) )
+                        seedGenres.push(e)
+                }
             })
         })
 
@@ -120,7 +129,7 @@ export default async () => {
         }
 
     }
-
+/* 
     fetchAttr = async (mood, audioFeatures) => {
         switch (mood) {
             case "general":
@@ -157,7 +166,92 @@ export default async () => {
                 })
             default: return;
         }
+    } */
+
+    fetchAttr = async (mood, audioFeatures) => {
+        switch (mood) {
+            case "general":
+                return ({
+                    target_danceability: audioFeatures[0],
+                    target_energy: audioFeatures[1],
+                    target_valence: audioFeatures[2],
+                    target_tempo: audioFeatures[3],
+                    target_acousticness: audioFeatures[4]
+                })
+            case "uplifting":
+                return ({
+                    min_valence: 0.6,
+                })
+            case "energetic":
+                return ({
+                    min_energy: 0.6,
+                    min_valence: 0.4,
+                    min_tempo: 150,
+                })
+            case "calm":
+                return ({
+                    max_energy: 0.5,
+                    max_tempo: 90,
+                    min_valence: 0.4,
+                })
+            case "gloomy":
+                return ({
+                    max_valence: 0.45,
+                    max_danceability: 0.5
+                })
+            default: return;
+        }
     }
+
+    fetchMoods = (mood, genres) => {
+
+        const uplifting = ["acoustic","alt-rock","alternative","ambient","anime","bossanova","chicago-house","classical","comedy","dance","drum-and-bass","edm","electro","electronic","folk","funk","garage","gospel","groove","guitar","happy","hard-rock","hardcore","heavy-metal","hip-hop","house","idm","indie","indie-pop","j-dance","j-idol","j-pop","j-rock","jazz","k-pop","metal","metal-misc","mpb","new-age","opera","piano","pop","power-pop","progressive-house","psych-rock","punk","punk-rock","r-n-b","reggae","reggaeton","rock","rock-n-roll","rockabilly","ska","soul","summer","trance","trip-hop","work-out"]
+        const energetic = ["alt-rock","afrobeat","alternative","breakbeat","chicago-house","club","dance","dancehall","death-metal","deep-house","detroit-techno","drum-and-bass","dubstep","edm","electro","electronic","emo","grindcore","grunge","hard-rock","hardcore","hardstyle","heavy-metal","hip-hop","house","metal","metal-misc","metalcore","minimal-techno","party","progressive-house","punk","punk-rock","reggaeton","rock","techno","trance","work-out"]
+        const calm = ["acoustic","afrobeat","alt-rock","ambient","black-metal","blues","bossanova","chicago-house","chill","classical","country","deep-house","detroit-techno","drum-and-bass","dub","electro","electronic","folk","gospel","groove","hard-rock","heavy-metal","hip-hop","house","idm","indie","indie-pop","metal","metal-misc","minimal-techno","new-age","opera","piano","pop","post-dubstep","power-pop","psych-rock","r-n-b","rainy-day","reggae","rock","rock-n-roll","rockabilly","romance","ska","sleep","songwriter","soul","study","summer","synth-pop","trance","trip-hop"]
+        const gloomy = ["acoustic","alt-rock","alternative","ambient","black-metal","blues","chicago-house","chill","classical","country","death-metal","deep-house","detroit-techno","drum-and-bass","electro","electronic","emo","folk","garage","goth","grindcore","grunge","guitar","hard-rock","hardcore","heavy-metal","hip-hop","idm","indie","indie-pop","industrial","jazz","k-pop","metal","metal-misc","metalcore","minimal-techno","piano","post-dubstep","psych-rock","punk","punk-rock","r-n-b","rainy-day","rock","romance","sad","singer-songwriter","sleep","songwriter","soul","study","synth-pop","techno","trance","trip-hop"]
+
+        let activeMood;
+        let matchedGenres = []
+        let random5 = []
+
+        randTopGenre = () => {
+            return matchedGenres[Math.floor(Math.random() * matchedGenres.length)];
+        }
+        
+        mapGenres = () => {
+
+            switch (mood) {
+                case "uplifting":
+                    activeMood = uplifting
+                break;
+                case "energetic":
+                    activeMood = energetic
+                break;
+                case "calm":
+                    activeMood = calm
+                break;
+                case "gloomy":
+                    activeMood = gloomy
+                break;
+            }
+            activeMood.map( e => {
+                if (genres.includes(e)) {
+                    if ( !matchedGenres.includes(e) ) 
+                        matchedGenres.push(e)
+                }
+            })
+            for (let i = 0; i < 5; i++) {
+                let x = randTopGenre()
+                if (!random5.includes(x) )
+                    random5.push(x)
+            }
+        }
+
+        mapGenres()
+
+        return random5
+    }
+
 
     generatePlayList = async(arg = {}) => {
 
@@ -173,26 +267,44 @@ export default async () => {
             topArtists = fetchUserTopArt.map(e=>e[1]).flat(Infinity),
             topTracks = fetchUserTopTracks.map(e=>e[1]).flat(Infinity),
             topGenres = fetchUserTopArt.map(e=>e[2]).flat(Infinity),   
-            seedableGenres = await fetchSeedGenres(topGenres),
-            randomlyPickedArtists = [];
+            randomlyPickedArtists = []; //random artists from user top
+
+        topGenres = topGenres.map(e => (
+            e.replace(/ /gi, '-')
+        ))
+
+        let seedableGenres = await fetchSeedGenres(topGenres), //genres you can use to seach stuff on spotify
         
-        pickRandomTop5 = () => {
+        pickRandomTop5art = async () => {
+            //take 5 random artists from user's top (50 by default), push them to a separate array
             randTopArtist = () => {
                 return topArtists[Math.floor(Math.random() * topArtists.length)];
             }
-            for (let i = 0; i < 3; i ++) {
-                if ( !randomlyPickedArtists.includes(randTopArtist()) )
-                    randomlyPickedArtists.push(randTopArtist())
+            for (let i = 0; i < 4; i ++) {
+                if ( !randomlyPickedArtists.includes( randTopArtist()) )
+                    randomlyPickedArtists.push( randTopArtist() )
             }
+
+            //detect if picked artists have any that do not have listed genres by Spotify. if so, remove those artists, because it's hard to get "similar songs" matches for them
+            randomlyPickedArtists.map(async (e, i) => {
+                let genres = await fetchArtist(e)
+
+                if (genres.length < 1) {
+                    randomlyPickedArtists.splice(i, 1)
+                }
+            })
         }
-        pickRandomTop5()
+
+        let genres;
+
+        arg.mood === "general" ? await pickRandomTop5art() : genres = await fetchMoods(arg.mood, seedableGenres)        
         
         seedableGenres.splice(5)
-        topTracks.splice(3)        
+        topTracks.splice(100)        
 
         //add a related artist to the user's top artists array
         if (!randomlyPickedArtists.includes(fetchRelatedArt))
-            randomlyPickedArtists.push(fetchRelatedArt) 
+            randomlyPickedArtists.push(fetchRelatedArt);
 
         //do analysis on user's top tracks
         //[0] = danceability, [1] = energy, [2] = valence, [3] = tempo, [4] = acousticness
@@ -202,15 +314,19 @@ export default async () => {
             searchTerm: topTracks.join()
         });
 
-        console.log(randomlyPickedArtists)
-        //fetch recommendations based on user's top played analysis
+        topTracks.splice(5)
+
+        if (arg.mood !== "general") genres.splice(4)
+
+        arg.mood === "general" ? randomlyPickedArtists.splice(5) : randomlyPickedArtists.splice(1)
+        //fetch recommendations (in playlist form) based on user's top played analysis, then send the final value to playlist screen component
         let recoms = await makeReq({
             url: SPYfetchURL("playlist"), 
             type: "seedsRecom",
-            limit: arg.limit,
+            limit: arg.limit, //how many songs to return. Max 100, min 1
             seeds: {
                 seed_artists: randomlyPickedArtists.join(),
-                seed_genres: undefined,
+                seed_genres: arg.mood === "general" ? undefined : genres.join(),
                 seed_tracks: undefined,
                 attributes: await this.fetchAttr(arg.mood, audioFeatures)
             }
@@ -219,7 +335,7 @@ export default async () => {
     }
 
     createPlayList = async (id, mood) => {
-
+        //function creates an empty playlist in user's account, that then gets filled with songs generated by generatePlayList()
         capitalize = ([firstLetter, ...rest]) => {
             return [firstLetter.toLocaleUpperCase(), ...rest].join('');
         }

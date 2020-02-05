@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import fetchFuncs from '../FetchFunctions';
 import {rand, log, secondObj} from "../methods";
-
+import colors, {lightTheme, darkTheme} from '../constants/Colors';
 
 let viewedTracks = []
 
@@ -20,32 +20,16 @@ class HomeScreen extends React.Component {
 
   state = {
     SPYtoken: null,
-    LFMuser: null,
-    authSkipSPYToken: null,
     searchInProgress: false,
     saved: false
-  }
-
-  clearAll = async () => {
-    //clear async storage
-    try {
-      await AsyncStorage.clear()
-    } catch(e) {
-      // clear error
-    }    
-    log("cleared async storage")
   }
   
   setToken = async () => {
     //function currently not in use in this screen
-    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken'),
-          LFMuser = await AsyncStorage.getItem('LFMuser'),
-          skipToken = await AsyncStorage.getItem('authSkipSPYToken');
+    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken')
 
     this.setState({
-      SPYtoken: SPYauthToken,
-      LFMuser: LFMuser,
-      authSkipSPYToken: skipToken
+      SPYtoken: SPYauthToken
     })
   }
 
@@ -112,19 +96,52 @@ class HomeScreen extends React.Component {
 
   componentDidMount = async () => {
     await this.setToken();
-    //this.clearAll();  
+    console.log(this.props.theme)
     AppState.addEventListener("change", ()=> this.restartOnFocus() ); 
   }
   
   render() {
     const {searchInProgress} = this.state
     const remoteImage = this.props.nowPlaying.imageSource
+    const theme = this.props.theme
+
+    const styles = StyleSheet.create({
+      container: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+      },
+      gradient: {
+        flex:1,
+        height: "100%",
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+      },
+      topBtn: {
+        borderRadius: 20,
+        width: 150,
+        marginTop: 10,
+        marginBottom: 10,
+        backgroundColor: theme.buttonBG,
+      },
+      bottomBtn: {
+        borderRadius: 20,
+        width: 150,
+        marginBottom: 10,
+        backgroundColor: theme.buttonBG
+      },
+      albumCover: {
+        width: 250,
+        height: 250
+      },
+    });
 
     return (
       <View style={styles.container}>
         <LinearGradient
           style={ styles.gradient }
-          colors={['#F2994A', '#F2C94C']}
+          colors={theme.backgroundGrad}
           >
 
           { remoteImage ?
@@ -133,7 +150,7 @@ class HomeScreen extends React.Component {
             /> :
             <Icon name='ios-musical-notes'
                   type='ionicon'
-                  color='#334d4d'
+                  color={theme.noteIcon}
                   size={150}
             />
           }
@@ -147,7 +164,7 @@ class HomeScreen extends React.Component {
             title="Discover"
             buttonStyle={styles.topBtn}
             titleStyle={{
-              color: "#fff",
+              color: theme.text,
               fontSize: 14,
             }}
             loading={searchInProgress ? true : false}
@@ -162,7 +179,7 @@ class HomeScreen extends React.Component {
             title="Something familiar"
             buttonStyle={styles.bottomBtn}
             titleStyle={{
-              color: "#fff",
+              color: theme.text,
               fontSize: 14,
             }}
             loading={searchInProgress ? true : false}
@@ -177,7 +194,9 @@ class HomeScreen extends React.Component {
 const mapStateToProps = state => {
   return {
     nowPlaying: state.nowPlaying,
-    playerParams: state.playerParams
+    playerParams: state.playerParams,
+    shouldLogout: state.shouldLogout,
+    theme: state.theme
   }
 }
 
@@ -193,35 +212,4 @@ const mapDispatchToProps = dispatch => {
 export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen)
 
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  gradient: {
-    flex:1,
-    height: "100%",
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  topBtn: {
-    borderRadius: 20,
-    width: 150,
-    marginTop: 10,
-    marginBottom: 10,
-    backgroundColor: "#669999",
-  },
-  bottomBtn: {
-    borderRadius: 20,
-    width: 150,
-    marginBottom: 10,
-    backgroundColor: "#669999"
-  },
-  albumCover: {
-    width: 250,
-    height: 250
-  },
 
-});

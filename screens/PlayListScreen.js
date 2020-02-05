@@ -1,4 +1,4 @@
-import React, { useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 import {  
   ActivityIndicator,
   AsyncStorage,
@@ -13,23 +13,25 @@ import { ListItem, Icon, Button } from 'react-native-elements'
 import { LinearGradient } from 'expo-linear-gradient';
 
 import fetchFuncs from '../FetchFunctions';
+import colors from '../constants/Colors';
 import {log} from "../methods";
 
 let playList = []
 let failCount = 0
+let interval;
 
 function LinksScreen(props) {
-
-  const textColor = "#fff"
 
   //state hooks
   const [mood, setMood] = useState('general');
   const [playListAdded, setPlayList] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [songLoading, setSongLoading] = useState(false);
   //forces the state to update
   const [, updateState] = React.useState();
   const forceUpdate = React.useCallback(() => updateState({}), []);
+
+  const theme = props.theme
 
   addPlayList = async () => {
     //add playlist to user's account
@@ -43,16 +45,23 @@ function LinksScreen(props) {
   handlePlayPause = (uri, title, artist, key, id) => {
     
     let slicedID = id.slice(14)    
+    clearTimeout( interval );
+    setSongLoading(true)
 
-    if (uri)
-      props.setNowPlaying({        
-        title: title,
-        id: slicedID,
-        artist: artist,
-        uri: uri,          
-        imageSource: null,
-        key: key
-      })
+    interval = setTimeout(() => {
+      if (uri) {
+        props.setNowPlaying({        
+          title: title,
+          id: slicedID,
+          artist: artist,
+          uri: uri,          
+          imageSource: null,
+          key: key
+        })
+        setSongLoading(false)
+      }
+    }, 850);
+
   }
 
   renderPlayList = () => {
@@ -64,23 +73,26 @@ function LinksScreen(props) {
           <ScrollView>
             { playList.map((l, i) => (
               <ListItem
-                titleStyle={{ fontSize: 13, color: textColor, fontWeight: "bold" }}
+                titleStyle={{ fontSize: 13, color: theme.text, fontWeight: "bold" }}
                 containerStyle={styles.listItem}
-                subtitleStyle={{ fontSize: 12, color: textColor }}
+                subtitleStyle={{ fontSize: 12, color: theme.text }}
                 key={i}
                 title={l.song}
                 subtitle={l.artist}
                 onPress={()=> this.handlePlayPause(l.preview, l.song, l.artist, i, l.id)}
-                rightElement={ 
+                rightElement=
+                { 
                   !l.preview ? 
-                  <Text style={{fontSize: 9, fontStyle: "italic", color: textColor}}>
-                    Preview not available
-                  </Text> :
-                  <Icon
-                    name='ios-play'
-                    type='ionicon'
-                    color={textColor}
-                  />  
+                    <Text style={{fontSize: 9, fontStyle: "italic", color: theme.text}}>
+                      Preview not available
+                    </Text> : 
+                  songLoading ?
+                    <ActivityIndicator size='small' color={theme.spinner}/> :  
+                    <Icon
+                      name='ios-play'
+                      type='ionicon'
+                      color={theme.text}
+                    />
                 }
               /> )) }
           </ScrollView>
@@ -97,15 +109,15 @@ function LinksScreen(props) {
     playList=[]
     let recoms = null;
     
-    if (failCount > 10) {
+    if (failCount > 5) {
       failCount = 0
-      log("search failed")
+      alert('Not enough lstening data for this playlist')
       setLoading(false)
       return
     }
 
     recoms = await generatePlayList({
-      timeRange: "medium_term", 
+      timeRange: "short_term", 
       limit: 50,
       mood: mood
     });
@@ -157,7 +169,7 @@ function LinksScreen(props) {
       borderRadius: 20,
       paddingLeft: 10,
       paddingRight: 10,
-      backgroundColor: "#669999"
+      backgroundColor: theme.buttonBG
     },
     playListIcon: {
       marginLeft: 10
@@ -172,16 +184,9 @@ function LinksScreen(props) {
       width:"100%",
     },
     listItem: {
-      backgroundColor: "#66999980", 
+      backgroundColor: theme.listItem, 
       borderTopWidth: 1.5, 
-      borderTopColor: textColor,
-    },
-    player: {
-      height: 100,
-      justifyContent: "center",
-      alignItems: "center",
-      width: "100%",
-      backgroundColor: "#000"
+      borderTopColor: theme.text,
     }
   
   });
@@ -190,12 +195,12 @@ function LinksScreen(props) {
     <View style={styles.container}>
       <LinearGradient
         style={ styles.gradient }
-        colors={['#F2994A', '#F2C94C']}
+        colors={theme.backgroundGrad}
       >
         <View style={styles.menu}>
           <Picker
             selectedValue={mood}
-            style={ { height: 50, width: 150, color: textColor } }
+            style={ { height: 50, width: 150, color: theme.text } }
             onValueChange={ (itemValue) => setMood(itemValue) }
             >
             <Picker.Item label="General" value="general" />
@@ -209,7 +214,7 @@ function LinksScreen(props) {
             title="Generate playlist"
             buttonStyle={styles.button}
             titleStyle={{
-              color: "#fff",
+              color: theme.text,
               fontSize: 14,
             }}
           />
@@ -219,12 +224,12 @@ function LinksScreen(props) {
                 <Icon
                   name='playlist-add-check'
                   type='material'
-                  color={textColor}
+                  color={theme.text}
                 /> :
                 <Icon
                   name='playlist-add'
                   type='material'
-                  color={textColor}
+                  color={theme.text}
                   onPress={ ()=> addPlayList() }
                 /> }
           </View>
@@ -232,7 +237,7 @@ function LinksScreen(props) {
 
         { loading &&
             <View style={styles.spinner}>
-              <ActivityIndicator size='large' color="#fff"/>
+              <ActivityIndicator size='large' color={theme.spinner}/>
             </View>
         }
 
@@ -250,7 +255,9 @@ LinksScreen.navigationOptions = {
 const mapStateToProps = state => {
   return {
     nowPlaying: state.nowPlaying,
-    playerParams: state.playerParams
+    playerParams: state.playerParams,
+    loading: state.loading,
+    theme: state.theme
   }
 }
 

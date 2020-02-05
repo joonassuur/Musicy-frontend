@@ -1,9 +1,10 @@
 import { AppLoading } from 'expo';
-import React, { useState, useEffect } from 'react';
-import { Platform, StatusBar, StyleSheet, View, AppState } from 'react-native';
+import React, { useState } from 'react';
+import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import {createStore} from 'redux';
 import {Provider} from 'react-redux';
 import AppNavigator from './navigation/AppNavigator';
+import {lightTheme, darkTheme} from './constants/Colors';
 
 
 const initialState = {
@@ -14,24 +15,38 @@ const initialState = {
     uri: null,          
     imageSource: null,
     key: null
-  }
+  },
+  playbackInstance: null,
+  shouldLogout: false,
+  loading: false,
+  theme: lightTheme
 }
 
 const reducer = (state = initialState, action) => {
   switch(action.type) {
     case 'SET_NOWPLAYING':
-      return {nowPlaying : action.track}
+      return {...state, nowPlaying : action.track}
+    case 'SET_PLAYBACK_INSTANCE':
+      return {...state, playbackInstance: action.instance.playbackInstance}
+    case 'SET_LOGOUT':
+      return {...state, shouldLogout: action.x}
+    case 'SET_LOADING':
+      return {...state, loading: action.x}
+    case 'SET_THEME':
+      return {...state, theme: action.theme}
+    case 'RESET_STATE':
+      return initialState
     default:
       return state;
   }
 }
+
 const store = createStore(reducer)
 
 export default function App(props) {
 
-
   const [isLoadingComplete, setLoadingComplete] = useState(false);
-
+  
   if (!isLoadingComplete && !props.skipLoadingScreen) {
     return (
       <AppLoading
@@ -82,6 +97,6 @@ function handleFinishLoading(setLoadingComplete) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#F2994A"
   },
 });

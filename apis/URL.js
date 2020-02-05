@@ -1,6 +1,7 @@
 const SPYURL = (id) => {
     return ({
             artist: {
+                baseURL: `https://api.spotify.com/v1/artists/?ids=${id}`,
                 related: `https://api.spotify.com/v1/artists/${id}/related-artists`,
                 albums: `https://api.spotify.com/v1/artists/${id}/albums`,
                 tracks: `https://api.spotify.com/v1/artists/${id}/top-tracks`,
@@ -57,6 +58,8 @@ const YTURL = () => {
 
 export const SPYfetchURL = (type, id) => {
     switch (type) {
+      case 'getArtist':
+        return SPYURL(id).artist.baseURL
       case "topArtists":
         return SPYURL().user.topArtists
       case "topTracks":
