@@ -65,7 +65,7 @@ function CombinedComponents(props) {
       <AppContainer
         onNavigationStateChange={(prevState, currentState) => {
           const currentRouteName = getActiveRouteName(currentState);
-          if (currentRouteName === "Home" || currentRouteName === "PlayList" )
+          if (currentRouteName === "Home" || currentRouteName === "PlayList" || currentRouteName === "Settings" )
             setAuthFinished(true)
 
           if (currentRouteName === "SignIn")

@@ -137,12 +137,14 @@ class AudioPlayer extends React.Component {
 
     renderFileInfo() {
         const { nowPlaying } = this.props
+        const theme = this.props.theme
+
         return (
             <View style={styles.trackInfo}>
-                <Text style={[styles.trackInfoText, styles.largeText]}>
+                <Text style={[styles.trackInfoText, styles.largeText, {color: theme.text}]}>
                     {nowPlaying.title}
                 </Text>
-                <Text style={[styles.trackInfoText, styles.smallText]}>
+                <Text style={[styles.trackInfoText, styles.smallText, {color: theme.text}]}>
                     {nowPlaying.artist}
                 </Text>
             </View>
@@ -150,6 +152,8 @@ class AudioPlayer extends React.Component {
     }
 
     saveTrack = () => {
+
+      const theme = this.props.theme
 
         if (this.props.nowPlaying.id !== null) {
 
@@ -162,7 +166,7 @@ class AudioPlayer extends React.Component {
                 <Icon
                   name='ios-heart-empty'
                   type='ionicon'
-                  color='#fff'
+                  color={theme.heart}
                   onPress={ async () => {
                       //add track to user's favorites
                       let res = await saveTrack("save", this.props.nowPlaying.id)
@@ -178,7 +182,7 @@ class AudioPlayer extends React.Component {
                 <Icon
                   name='ios-heart'
                   type='ionicon'
-                  color='#fff'
+                  color={theme.heart}
                   onPress={ async () => {
                       //remove track to user's favorites
                       let res = await saveTrack("remove", this.props.nowPlaying.id)
@@ -197,7 +201,7 @@ class AudioPlayer extends React.Component {
     render() {
 
       const { playbackInstance, loading } = this.props
-
+      
       return(
         <View>
           {
@@ -263,10 +267,6 @@ const styles = StyleSheet.create({
     trackInfoText: {
       textAlign: 'center',
       flexWrap: 'wrap',
-      color: '#fff',
-    },
-    heart: {
-        
     },
     largeText: {
       fontWeight: "bold",

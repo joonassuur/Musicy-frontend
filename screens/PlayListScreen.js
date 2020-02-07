@@ -13,7 +13,6 @@ import { ListItem, Icon, Button } from 'react-native-elements'
 import { LinearGradient } from 'expo-linear-gradient';
 
 import fetchFuncs from '../FetchFunctions';
-import colors from '../constants/Colors';
 import {log} from "../methods";
 
 let playList = []
@@ -91,7 +90,7 @@ function LinksScreen(props) {
                     <Icon
                       name='ios-play'
                       type='ionicon'
-                      color={theme.text}
+                      color={theme.playIcon}
                     />
                 }
               /> )) }
@@ -140,7 +139,6 @@ function LinksScreen(props) {
 
   }
 
-  //aka componentDidMount()
   useEffect(() => {
     //get namespace for Spotify API request functions
     fetchFuncs() 
@@ -186,7 +184,7 @@ function LinksScreen(props) {
     listItem: {
       backgroundColor: theme.listItem, 
       borderTopWidth: 1.5, 
-      borderTopColor: theme.text,
+      borderTopColor: theme.listItemBorder,
     }
   
   });
@@ -214,7 +212,7 @@ function LinksScreen(props) {
             title="Generate playlist"
             buttonStyle={styles.button}
             titleStyle={{
-              color: theme.text,
+              color: theme.buttonTXT,
               fontSize: 14,
             }}
           />

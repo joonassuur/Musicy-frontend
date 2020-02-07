@@ -1,6 +1,6 @@
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
-import { createBottomTabNavigator } from 'react-navigation';
+import { Platform, StyleSheet, AsyncStorage } from 'react-native';
+import { createBottomTabNavigator, BottomTabBar  } from 'react-navigation';
 import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/HomeScreen';
 import PlayListScreen from '../screens/PlayListScreen';
@@ -13,26 +13,32 @@ const config = Platform.select({
 });
 
 
+let theme;
+
+const getActiveTheme = async () => {
+  const activeTheme = await AsyncStorage.getItem('theme')
+  return activeTheme
+}
+
+getActiveTheme()
+
+const TabBarComponent = props => <BottomTabBar {...props} />;
+
+connect(mapStateToProps)(TabBarComponent)
+
 const MainStack = createBottomTabNavigator(
   {
     Home: {
-      screen: HomeScreen,
+      screen: (props) => <HomeScreen {...props} />,
       navigationOptions: {
         tabBarLabel: 'Discover',
         tabBarIcon: ({ focused }) => (
-            <TabBarIcon
-              focused={focused}
-              name={
-                Platform.OS === 'ios'
-                  ? `ios-musical-note${focused ? '' : '-outline'}`
-                  : 'md-musical-note'
-              }
-            />
+            <TabBarIcon focused={focused} name={Platform.OS === 'ios' ? 'ios-musical-note' : 'md-musical-note' } />
           ),
         }
     },
     PlayList: {
-      screen: PlayListScreen,
+      screen: (props) => <PlayListScreen {...props} />,
       navigationOptions: {
         tabBarLabel: 'Playlist Generator',
         tabBarIcon: ({ focused }) => (
@@ -41,7 +47,7 @@ const MainStack = createBottomTabNavigator(
       }
     },
     Settings: {
-      screen: SettingsScreen,
+      screen: (props) => <SettingsScreen {...props} />,
       navigationOptions: {
         tabBarLabel: 'Settings',
         tabBarIcon: ({ focused }) => (
@@ -51,14 +57,28 @@ const MainStack = createBottomTabNavigator(
     }, 
   },
   {
+    tabBarComponent: props => {
+      checkTheme = async () => theme = await getActiveTheme();
+      checkTheme()
+      return (
+        <TabBarComponent {...props} 
+          style={{ backgroundColor: theme === "dark" ? "#0d0d0d" : '#669999' }} 
+          activeTintColor= { theme === "dark" ? "#e60000" : '#F2C94C'}
+          inactiveTintColor= {theme === "dark" ? "#fff" : '#fff'}
+        />
+      )
+    },
+  }
+/*   {
     tabBarOptions: { 
       style: {
         backgroundColor: '#669999'
        },
       activeTintColor: '#F2C94C',
       inactiveTintColor: '#fff',
-    },
-  });
+    }
+  } */
+);
 
 
 MainStack.path = '';
@@ -67,7 +87,8 @@ MainStack.path = '';
 const mapStateToProps = state => {
   return {
     nowPlaying: state.nowPlaying,
-    playerParams: state.playerParams
+    playerParams: state.playerParams,
+    theme: state.theme
   }
 }
 

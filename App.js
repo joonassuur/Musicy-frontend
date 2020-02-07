@@ -65,7 +65,6 @@ export default function App(props) {
       </Provider>
     );
   }
-
 }
 
 async function loadResourcesAsync() {

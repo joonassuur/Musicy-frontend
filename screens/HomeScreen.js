@@ -12,27 +12,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import fetchFuncs from '../FetchFunctions';
 import {rand, log, secondObj} from "../methods";
-import colors, {lightTheme, darkTheme} from '../constants/Colors';
+import {lightTheme, darkTheme} from '../constants/Colors';
 
 let viewedTracks = []
 
 class HomeScreen extends React.Component {
 
   state = {
-    SPYtoken: null,
     searchInProgress: false,
     saved: false
   }
   
-  setToken = async () => {
-    //function currently not in use in this screen
-    const SPYauthToken = await AsyncStorage.getItem('SPYauthToken')
-
-    this.setState({
-      SPYtoken: SPYauthToken
-    })
-  }
-
 
   fetchRec = async (arg = {}) => {
     
@@ -95,8 +85,10 @@ class HomeScreen extends React.Component {
   }
 
   componentDidMount = async () => {
-    await this.setToken();
-    console.log(this.props.theme)
+    //set user's specified theme on app load
+    const activeTheme = await AsyncStorage.getItem('theme')
+    activeTheme === "light" ? this.props.setTheme(lightTheme) : this.props.setTheme(darkTheme)
+    //restart the app when it regains focus to get a new spotify auth token
     AppState.addEventListener("change", ()=> this.restartOnFocus() ); 
   }
   
@@ -164,7 +156,7 @@ class HomeScreen extends React.Component {
             title="Discover"
             buttonStyle={styles.topBtn}
             titleStyle={{
-              color: theme.text,
+              color: theme.buttonTXT,
               fontSize: 14,
             }}
             loading={searchInProgress ? true : false}
@@ -179,7 +171,7 @@ class HomeScreen extends React.Component {
             title="Something familiar"
             buttonStyle={styles.bottomBtn}
             titleStyle={{
-              color: theme.text,
+              color: theme.buttonTXT,
               fontSize: 14,
             }}
             loading={searchInProgress ? true : false}
@@ -201,10 +193,12 @@ const mapStateToProps = state => {
 }
 
 const setNowPlaying = (track) => ({ type: 'SET_NOWPLAYING', track })
+const setTheme = (theme) => ({ type: 'SET_THEME', theme })
 
 const mapDispatchToProps = dispatch => {
   return {
-    setNowPlaying: (track) => dispatch(setNowPlaying(track))
+    setNowPlaying: (track) => dispatch(setNowPlaying(track)),
+    setTheme: (theme) => dispatch(setTheme(theme)),
   }
 }
 

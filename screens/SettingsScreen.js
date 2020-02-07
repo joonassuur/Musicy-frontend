@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import {connect} from 'react-redux'
 import { LinearGradient } from 'expo-linear-gradient';
-import { ListItem } from 'react-native-elements'
+import { ListItem, Icon } from 'react-native-elements'
 import {lightTheme, darkTheme} from '../constants/Colors';
 
 function SettingsScreen(props) {
@@ -29,9 +29,11 @@ function SettingsScreen(props) {
   }
 
   changeTheme = async () => {
-  
+    const activeTheme = await AsyncStorage.getItem('theme')
+    activeTheme === "light" ? await AsyncStorage.setItem('theme', 'dark') : await AsyncStorage.setItem('theme', 'light')
     theme.theme === "light" ? props.setTheme(darkTheme) : props.setTheme(lightTheme)
-      
+
+    props.navigation.navigate('Auth'); 
   }
 
   const styles = StyleSheet.create({
@@ -46,8 +48,8 @@ function SettingsScreen(props) {
     },
     listItem: {
       backgroundColor: theme.listItem, 
-      borderTopColor: "white",
-      borderTopWidth: 1
+      borderTopColor: theme.listItemBorder,
+      borderTopWidth: 2
     },
     gradient: {
       flex:1,
@@ -57,7 +59,8 @@ function SettingsScreen(props) {
       justifyContent: "center",
     },
   });
-
+  
+  
   return (
       <View style={styles.container}>
         <LinearGradient
@@ -80,6 +83,20 @@ function SettingsScreen(props) {
               titleStyle={{ fontSize: 13, color: "#fff", fontWeight: "bold" }}
               subtitleStyle={{ fontSize: 12, color: "#fff" }}
               onPress={this.changeTheme}
+              rightElement=
+              {
+                theme.theme === "dark" ? 
+                  <Icon
+                    name='ios-bulb'
+                    type='ionicon'
+                    color="#fff"
+                  /> : 
+                  <Icon
+                    name='ios-bulb'
+                    type='ionicon'
+                    color="#ff0"
+                  />
+              }
             />
           </View>
         </LinearGradient>
@@ -110,7 +127,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(SettingsScreen)
 
 
 SettingsScreen.navigationOptions = {
-  title: 'app.json',
+  title: 'Settings',
 };
 
 
