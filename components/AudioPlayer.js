@@ -125,7 +125,7 @@ class AudioPlayer extends React.Component {
             interruptionModeAndroid: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
             shouldDuckAndroid: false,
             staysActiveInBackground: false,
-            playThroughEarpieceAndroid: true
+            playThroughEarpieceAndroid: false
         })
         } catch (e) {
             console.log(e)
