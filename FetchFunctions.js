@@ -129,44 +129,7 @@ export default async () => {
         }
 
     }
-/* 
-    fetchAttr = async (mood, audioFeatures) => {
-        switch (mood) {
-            case "general":
-                return ({
-                    target_danceability: audioFeatures[0],
-                    target_energy: audioFeatures[1],
-                    target_valence: audioFeatures[2],
-                    target_tempo: audioFeatures[3],
-                    target_acousticness: audioFeatures[4]
-                })
-            case "uplifting":
-                return ({
-                    min_valence: 0.7,
-                    min_danceability: 0.5
-                })
-            case "energetic":
-                return ({
-                    min_energy: 0.7,
-                    min_loudness: -30,
-                    min_valence: 0.5,
-                    min_tempo: 145,
-                    max_acousticness: 0.4,
-                })
-            case "calm":
-                return ({
-                    max_energy: 0.5,
-                    max_tempo: 90,
-                    min_valence: 0.4,
-                })
-            case "gloomy":
-                return ({
-                    max_valence: 0.4,
-                    max_danceability: 0.5
-                })
-            default: return;
-        }
-    } */
+
 
     fetchAttr = async (mood, audioFeatures) => {
         switch (mood) {
