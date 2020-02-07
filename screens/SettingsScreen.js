@@ -72,16 +72,16 @@ function SettingsScreen(props) {
               containerStyle={styles.listItem}
               title={"Log Out"}
               subtitle={"Tap to log out"}
-              titleStyle={{ fontSize: 13, color: "#fff", fontWeight: "bold" }}
-              subtitleStyle={{ fontSize: 12, color: "#fff" }}
+              titleStyle={{ fontSize: 13, color: theme.text, fontWeight: "bold" }}
+              subtitleStyle={{ fontSize: 12, color: theme.text }}
               onPress={this.logOut}
             />
             <ListItem
               containerStyle={styles.listItem}
               title={"Theme"}
               subtitle={"Change the theme of the app"}
-              titleStyle={{ fontSize: 13, color: "#fff", fontWeight: "bold" }}
-              subtitleStyle={{ fontSize: 12, color: "#fff" }}
+              titleStyle={{ fontSize: 13, color: theme.text, fontWeight: "bold" }}
+              subtitleStyle={{ fontSize: 12, color: theme.text }}
               onPress={this.changeTheme}
               rightElement=
               {

@@ -3,23 +3,25 @@ const tintColor_light = '#f7b733', //active icon color
       listItemBorder_light = "#fff",
       listItemBorder_dark = "#fff",
       buttonBG_light = "#669999",
-      buttonBG_dark = "#4d0000",
+      buttonBG_dark = "#660000",
       buttonTXT_light = "#fff",
       buttonTXT_dark = "#fff",
       heart_light = "#fff",
-      heart_dark =  "#fff",
+      heart_dark =  "#cc0000",
       text_light = "#fff",
       text_dark = "#fff",
       backgroundGrad_light = ['#F2994A', '#F2C94C'],
       backgroundGrad_dark = ['#1a1a1a','#1a1a1a'],
       noteIcon_light = "#334d4d",
-      noteIcon_dark = "#fff",
+      noteIcon_dark = "#1a0000",
       listItem_light = "#66999980",
-      listItem_dark = "#4d0000",
+      listItem_dark = "#1a0000",
       playerBG_light = "#669999",
       playerBG_dark = "#000",
+      playPause_light = "#fff",
+      playPause_dark = "#cc0000",
       playIcon_light = "#fff",
-      playIcon_dark = "#fff"
+      playIcon_dark = "#fff",
       spinner_light = "#fff",
       spinner_dark = "#fff";
 
@@ -45,6 +47,7 @@ export const lightTheme = {
   listItem: listItem_light,
   playIcon: playIcon_light,
   playerBG: playerBG_light,
+  playPause: playPause_light,
   spinner: spinner_light,
 }
 export const darkTheme = {
@@ -60,5 +63,6 @@ export const darkTheme = {
   listItem: listItem_dark,
   playIcon: playIcon_dark,
   playerBG: playerBG_dark,
+  playPause: playPause_dark,
   spinner: spinner_dark,
 }

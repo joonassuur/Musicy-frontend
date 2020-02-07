@@ -56,7 +56,6 @@ class AudioPlayer extends React.Component {
     
             playbackInstance.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate)    
             await playbackInstance.loadAsync(source, status, false)
-            this.setState({saved: false})
 
             this.props.setPlaybackInstance({playbackInstance})
             this.props.setLoading(false)
@@ -104,6 +103,7 @@ class AudioPlayer extends React.Component {
         }
 
         if (nowPlaying !== prevProps.nowPlaying) {
+            this.setState({saved: false})
             if(playbackInstance) 
                 await playbackInstance.unloadAsync()
 
@@ -201,7 +201,8 @@ class AudioPlayer extends React.Component {
     render() {
 
       const { playbackInstance, loading } = this.props
-      
+      const theme = this.props.theme
+
       return(
         <View>
           {
@@ -209,9 +210,9 @@ class AudioPlayer extends React.Component {
               <View style={styles.container}>
                 <TouchableOpacity onPress={this.handlePlayPause}>
                     {this.state.isPlaying ? (
-                    <Ionicons name='ios-pause' size={48} color='#fff' />
+                    <Ionicons name='ios-pause' size={48} color={theme.playPause} />
                     ) : (
-                    <Ionicons name='ios-play-circle' size={48} color='#fff' />
+                    <Ionicons name='ios-play-circle' size={48} color={theme.playPause} />
                     )}
                 </TouchableOpacity>
 

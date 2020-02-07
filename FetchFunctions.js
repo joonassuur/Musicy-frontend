@@ -191,8 +191,8 @@ export default async () => {
             case "calm":
                 return ({
                     max_energy: 0.5,
-                    max_tempo: 90,
-                    min_valence: 0.4,
+                    max_tempo: 100,
+                    min_valence: 0.5,
                 })
             case "gloomy":
                 return ({

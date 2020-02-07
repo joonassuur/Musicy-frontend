@@ -63,21 +63,12 @@ const MainStack = createBottomTabNavigator(
       return (
         <TabBarComponent {...props} 
           style={{ backgroundColor: theme === "dark" ? "#0d0d0d" : '#669999' }} 
-          activeTintColor= { theme === "dark" ? "#e60000" : '#F2C94C'}
-          inactiveTintColor= {theme === "dark" ? "#fff" : '#fff'}
+          activeTintColor={theme === "dark" ? "#cc0000" : '#F2C94C'}
+          inactiveTintColor={theme === "dark" ? "#fff" : '#fff'}
         />
       )
     },
   }
-/*   {
-    tabBarOptions: { 
-      style: {
-        backgroundColor: '#669999'
-       },
-      activeTintColor: '#F2C94C',
-      inactiveTintColor: '#fff',
-    }
-  } */
 );
 
 

@@ -91,11 +91,13 @@ class HomeScreen extends React.Component {
     //restart the app when it regains focus to get a new spotify auth token
     AppState.addEventListener("change", ()=> this.restartOnFocus() ); 
   }
+
   
   render() {
     const {searchInProgress} = this.state
     const remoteImage = this.props.nowPlaying.imageSource
     const theme = this.props.theme
+    const loading = this.props.loading
 
     const styles = StyleSheet.create({
       container: {
@@ -148,7 +150,7 @@ class HomeScreen extends React.Component {
           }
 
           <Button onPress={ ()=>{
-              if (!searchInProgress)
+              if (!searchInProgress && !loading)
                 this.fetchRec({
                   discoverNew: true, 
                   limit: 40,
@@ -163,7 +165,7 @@ class HomeScreen extends React.Component {
           />
 
           <Button onPress={ ()=>{
-              if (!searchInProgress)
+              if (!searchInProgress && !loading)
                 this.fetchRec({
                   timeRange: rand(["short_term", "medium_term", "long_term"]),
                   limit: 40,
@@ -188,6 +190,7 @@ const mapStateToProps = state => {
     nowPlaying: state.nowPlaying,
     playerParams: state.playerParams,
     shouldLogout: state.shouldLogout,
+    loading: state.loading,
     theme: state.theme
   }
 }

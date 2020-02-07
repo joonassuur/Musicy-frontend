@@ -108,7 +108,7 @@ function LinksScreen(props) {
     playList=[]
     let recoms = null;
     
-    if (failCount > 5) {
+    if (failCount > 4) {
       failCount = 0
       alert('Not enough lstening data for this playlist')
       setLoading(false)
