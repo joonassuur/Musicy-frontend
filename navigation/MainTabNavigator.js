@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, StyleSheet, AsyncStorage } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { createBottomTabNavigator, BottomTabBar  } from 'react-navigation';
 import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/HomeScreen';
@@ -7,20 +7,13 @@ import PlayListScreen from '../screens/PlayListScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import {connect} from 'react-redux';
 
+import {theme} from '../screens/login/SpotWebViewScreen'
+
 const config = Platform.select({
   web: { headerMode: 'screen' },
   default: {},
 });
 
-
-let theme;
-
-const getActiveTheme = async () => {
-  const activeTheme = await AsyncStorage.getItem('theme')
-  return activeTheme
-}
-
-getActiveTheme()
 
 const TabBarComponent = props => <BottomTabBar {...props} />;
 
@@ -58,13 +51,11 @@ const MainStack = createBottomTabNavigator(
   },
   {
     tabBarComponent: props => {
-      checkTheme = async () => theme = await getActiveTheme();
-      checkTheme()
       return (
         <TabBarComponent {...props} 
-          style={{ backgroundColor: theme === "dark" ? "#0d0d0d" : '#669999' }} 
-          activeTintColor={theme === "dark" ? "#cc0000" : '#F2C94C'}
-          inactiveTintColor={theme === "dark" ? "#fff" : '#fff'}
+          style={{ backgroundColor: theme.navbarBG }} 
+          activeTintColor={ theme.activeTintColor }
+          inactiveTintColor={ theme.inactiveTintColor }
         />
       )
     },
@@ -79,7 +70,6 @@ const mapStateToProps = state => {
   return {
     nowPlaying: state.nowPlaying,
     playerParams: state.playerParams,
-    theme: state.theme
   }
 }
 

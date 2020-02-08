@@ -16,12 +16,26 @@ export default async () => {
 
     fetchUserTop = async (timeRange, limit, type) => {
         //get user's top artists/genres or tracks from Spotify
-        return await makeReq({
+        let userTop
+
+        userTop = await makeReq({
           url: type === "userTopTracks" ? SPYfetchURL("topTracks") : SPYfetchURL("topArtists"), 
           type: type || "userTopArtists",
           timeRange: timeRange,
           limit: limit
         })
+
+        //if no, or little short term listening data, return only long term (complete) data
+        if (userTop.length < 10) {
+            return await makeReq({
+                url: type === "userTopTracks" ? SPYfetchURL("topTracks") : SPYfetchURL("topArtists"), 
+                type: type || "userTopArtists",
+                timeRange: "long_term",
+                limit: limit
+            })
+        }
+
+        return userTop
     }
     
     fetchRecomArt = async (discoverNew, timeRange, limit) => {

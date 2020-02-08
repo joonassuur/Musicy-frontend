@@ -1,4 +1,11 @@
-const tintColor_light = '#f7b733', //active icon color
+const navbarBG_light = "#669999",
+      navbarBG_dark = "#0d0d0d",
+      activeTintColor_light = "#F2C94C",
+      activeTintColor_dark = "#cc0000",
+      inactiveTintColor_light = "#fff",
+      inactiveTintColor_dark = "#fff",
+      //end navbar
+      tintColor_light = '#f7b733', //active icon color
       tintColor_dark = '#fff',
       listItemBorder_light = "#fff",
       listItemBorder_dark = "#fff",
@@ -36,6 +43,9 @@ export default {
 
 export const lightTheme = {
   theme: "light",
+  navbarBG: navbarBG_light,
+  activeTintColor: activeTintColor_light,
+  inactiveTintColor: inactiveTintColor_light,
   tintColor: tintColor_light,
   buttonBG:buttonBG_light,
   buttonTXT: buttonTXT_light,
@@ -52,6 +62,9 @@ export const lightTheme = {
 }
 export const darkTheme = {
   theme: "dark",
+  navbarBG: navbarBG_dark,
+  activeTintColor: activeTintColor_dark,
+  inactiveTintColor: inactiveTintColor_dark,
   tintColor: tintColor_dark,
   buttonBG:buttonBG_dark,
   buttonTXT: buttonTXT_dark,

@@ -1,11 +1,14 @@
 import React from 'react';
 import { ActivityIndicator, AsyncStorage, View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-
+import {connect} from 'react-redux'
 import makeReq from '../../apis/request';
 import {SPYfetchURL} from '../../apis/URL';
+import {lightTheme, darkTheme} from '../../constants/Colors';
 
-export default SpotWebViewScreen = (props) => {
+export let theme;
+
+const SpotWebViewScreen = (props) => {
 
     const [loading, setLoading] = React.useState(true)
 
@@ -19,13 +22,27 @@ export default SpotWebViewScreen = (props) => {
         if (e.url.indexOf('https://spot-auth-backend.herokuapp.com/auth_success?') !== -1) {
             
             setLoading(true)
+
+            //set user's specified theme on app load
+            const activeTheme = await AsyncStorage.getItem('theme')
+            
+            if (!activeTheme)
+                await AsyncStorage.setItem('theme', 'light')
+
+            activeTheme === "dark" ? props.setTheme(darkTheme) : props.setTheme(lightTheme)
+            theme = props.theme
+
+            //set access token
             let token = e.url.split("access_token=")[1];
             await AsyncStorage.setItem('SPYauthToken', token)
+
+            //fetch user profile
             let ID = await makeReq({
                 url: SPYfetchURL("profile"),
                 type: "profile"
             });
 
+            //navigate to homescreen
             try {
                 await AsyncStorage.setItem('spotifyID', ID)
                 props.navigation.navigate('Main');
@@ -75,4 +92,24 @@ const styles = StyleSheet.create({
 
   
 });
+  
+
+const mapStateToProps = state => {
+    return {
+      theme: state.theme
+    }
+}  
+
+const setTheme = (theme) => ({ type: 'SET_THEME', theme })
+
+const mapDispatchToProps = dispatch => {
+  return {
+    setTheme: (theme) => dispatch(setTheme(theme)),
+  }
+}
+
+  
+export default connect(mapStateToProps, mapDispatchToProps)(SpotWebViewScreen)
+  
+  
   

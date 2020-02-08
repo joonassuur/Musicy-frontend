@@ -153,7 +153,7 @@ class AudioPlayer extends React.Component {
 
     saveTrack = () => {
 
-      const theme = this.props.theme
+        const theme = this.props.theme
 
         if (this.props.nowPlaying.id !== null) {
 

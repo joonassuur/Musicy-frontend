@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Image,
   StyleSheet,
-  AsyncStorage,
   View,
   AppState
 } from 'react-native';
@@ -12,7 +11,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import fetchFuncs from '../FetchFunctions';
 import {rand, log, secondObj} from "../methods";
-import {lightTheme, darkTheme} from '../constants/Colors';
 
 let viewedTracks = []
 
@@ -22,7 +20,6 @@ class HomeScreen extends React.Component {
     searchInProgress: false,
     saved: false
   }
-  
 
   fetchRec = async (arg = {}) => {
     
@@ -85,9 +82,6 @@ class HomeScreen extends React.Component {
   }
 
   componentDidMount = async () => {
-    //set user's specified theme on app load
-    const activeTheme = await AsyncStorage.getItem('theme')
-    activeTheme === "light" ? this.props.setTheme(lightTheme) : this.props.setTheme(darkTheme)
     //restart the app when it regains focus to get a new spotify auth token
     AppState.addEventListener("change", ()=> this.restartOnFocus() ); 
   }
@@ -184,6 +178,7 @@ class HomeScreen extends React.Component {
     );
   }
 }
+
 
 const mapStateToProps = state => {
   return {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   StyleSheet,
@@ -25,6 +25,7 @@ function SettingsScreen(props) {
       props.navigation.navigate('Auth'); 
     } catch(e) {
       // clear error
+      console.log(e)
     }    
   }
 
