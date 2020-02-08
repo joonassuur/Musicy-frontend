@@ -1,16 +1,22 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   AsyncStorage
 } from 'react-native';
+import makeReq from '../apis/request';
+import {SPYfetchURL} from '../apis/URL';
 import {connect} from 'react-redux'
 import { LinearGradient } from 'expo-linear-gradient';
 import { ListItem, Icon } from 'react-native-elements'
 import {lightTheme, darkTheme} from '../constants/Colors';
 
+//TODO: add: "logged in as:" in a list
+
 function SettingsScreen(props) {
 
+  const [username, setUsername] = useState('')
   var RCTNetworking = require("RCTNetworking");
 
   const theme = props.theme
@@ -26,10 +32,11 @@ function SettingsScreen(props) {
     } catch(e) {
       // clear error
       console.log(e)
-    }    
+    }
   }
 
   changeTheme = async () => {
+
     const activeTheme = await AsyncStorage.getItem('theme')
     activeTheme === "light" ? await AsyncStorage.setItem('theme', 'dark') : await AsyncStorage.setItem('theme', 'light')
     theme.theme === "light" ? props.setTheme(darkTheme) : props.setTheme(lightTheme)
@@ -61,6 +68,18 @@ function SettingsScreen(props) {
     },
   });
   
+  const fetchUserProfile = async () => {
+    let ID = await makeReq({
+      url: SPYfetchURL("profile"),
+      type: "profile"
+    });
+    setUsername(ID)
+  }
+
+  useEffect( () => {
+      //fetch user profile
+      fetchUserProfile()
+  }, []);
   
   return (
       <View style={styles.container}>
@@ -71,7 +90,7 @@ function SettingsScreen(props) {
           <View style={styles.listContainer}>
             <ListItem
               containerStyle={styles.listItem}
-              title={"Log Out"}
+              title={`Logged in as: ${username}`}
               subtitle={"Tap to log out"}
               titleStyle={{ fontSize: 13, color: theme.text, fontWeight: "bold" }}
               subtitleStyle={{ fontSize: 12, color: theme.text }}
