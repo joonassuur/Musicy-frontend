@@ -8,10 +8,11 @@ import { Button } from 'react-native-elements'
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
+//TODO: add an option to go back, if clicked "log in with facebook"
+
 const SignInScreen = ( props ) => {
 
     const {navigate} = props.navigation
-    const [value, setState] = React.useState('');
 
     SPYloginSkip = async () => {
         axios.get('https://spot-auth-backend.herokuapp.com/login_skip')

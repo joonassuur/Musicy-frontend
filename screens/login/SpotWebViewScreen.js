@@ -7,6 +7,7 @@ import {SPYfetchURL} from '../../apis/URL';
 import {lightTheme, darkTheme} from '../../constants/Colors';
 
 export let theme;
+export let ID;
 
 const SpotWebViewScreen = (props) => {
 
@@ -37,7 +38,7 @@ const SpotWebViewScreen = (props) => {
             await AsyncStorage.setItem('SPYauthToken', token)
 
             //fetch user profile
-            let ID = await makeReq({
+            ID = await makeReq({
                 url: SPYfetchURL("profile"),
                 type: "profile"
             });

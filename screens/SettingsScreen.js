@@ -1,22 +1,17 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   AsyncStorage
 } from 'react-native';
-import makeReq from '../apis/request';
-import {SPYfetchURL} from '../apis/URL';
 import {connect} from 'react-redux'
 import { LinearGradient } from 'expo-linear-gradient';
 import { ListItem, Icon } from 'react-native-elements'
 import {lightTheme, darkTheme} from '../constants/Colors';
-
-//TODO: add: "logged in as:" in a list
+import {ID} from './login/SpotWebViewScreen' //username
 
 function SettingsScreen(props) {
 
-  const [username, setUsername] = useState('')
   var RCTNetworking = require("RCTNetworking");
 
   const theme = props.theme
@@ -68,19 +63,6 @@ function SettingsScreen(props) {
     },
   });
   
-  const fetchUserProfile = async () => {
-    let ID = await makeReq({
-      url: SPYfetchURL("profile"),
-      type: "profile"
-    });
-    setUsername(ID)
-  }
-
-  useEffect( () => {
-      //fetch user profile
-      fetchUserProfile()
-  }, []);
-  
   return (
       <View style={styles.container}>
         <LinearGradient
@@ -90,7 +72,7 @@ function SettingsScreen(props) {
           <View style={styles.listContainer}>
             <ListItem
               containerStyle={styles.listItem}
-              title={`Logged in as: ${username}`}
+              title={`Logged in as: ${ID}`}
               subtitle={"Tap to log out"}
               titleStyle={{ fontSize: 13, color: theme.text, fontWeight: "bold" }}
               subtitleStyle={{ fontSize: 12, color: theme.text }}
@@ -99,7 +81,7 @@ function SettingsScreen(props) {
             <ListItem
               containerStyle={styles.listItem}
               title={"Theme"}
-              subtitle={"Change the theme of the app"}
+              subtitle={"Tap to toggle between light and dark theme"}
               titleStyle={{ fontSize: 13, color: theme.text, fontWeight: "bold" }}
               subtitleStyle={{ fontSize: 12, color: theme.text }}
               onPress={this.changeTheme}

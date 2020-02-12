@@ -18,12 +18,23 @@ class HomeScreen extends React.Component {
 
   state = {
     searchInProgress: false,
-    saved: false
+    saved: false,
+    searchCount : 0
   }
 
   fetchRec = async (arg = {}) => {
     
+    const {searchCount} = this.state
+
+    //user might not have enough listening data on spotify for this feature to do anything. Stop after 7 runs to prevent infinite loops.
+    if (searchCount > 7) {
+      alert('Not enough listening data on this Spotify account to use this feature')
+      this.setState({searchCount: 0})
+      return;
+    }
+
     fetchFuncs()
+
     // halt new search requests while "searchInProgress" is true
     this.setState({searchInProgress: true})
     
@@ -57,7 +68,8 @@ class HomeScreen extends React.Component {
 
       this.setState({
         searchInProgress: false,
-        saved: false
+        saved: false,
+        searchCount: 0
       })
 
       if (arg.discoverNew) {
@@ -70,6 +82,7 @@ class HomeScreen extends React.Component {
 
     log("again..")
     //If picked value is from LFM and spotify does not have the given artist, the script will keep running until the condition is true
+    this.setState({searchCount: searchCount++})
     this.fetchRec(arg)
   }
 
