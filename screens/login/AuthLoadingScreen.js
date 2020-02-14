@@ -16,9 +16,6 @@ class AuthLoadingScreen extends React.Component {
         const {navigate} = this.props.navigation;
 
         const SPYauthToken = await AsyncStorage.getItem('SPYauthToken');
-/*         const LFMuser = await AsyncStorage.getItem('LFMauthToken')
-        const skipToken = await AsyncStorage.getItem('authSkipSPYToken');
-        const IDcomplete = await AsyncStorage.getItem('IDcomplete'); */
 
         if (SPYauthToken) {
           return navigate('SpotWebView')

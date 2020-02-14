@@ -1,35 +1,37 @@
 const navbarBG_light = "#669999",
-      navbarBG_dark = "#0d0d0d",
+      navbarBG_dark = "#3d3d5c",
       activeTintColor_light = "#F2C94C",
-      activeTintColor_dark = "#cc0000",
+      activeTintColor_dark = "#f7b733",
       inactiveTintColor_light = "#fff",
       inactiveTintColor_dark = "#fff",
-      //end navbar
       tintColor_light = '#f7b733', //active icon color
       tintColor_dark = '#fff',
+      //end navbar
+      listItem_light = "#66999980",
+      listItem_dark = "#1f1f2e",
       listItemBorder_light = "#fff",
       listItemBorder_dark = "#fff",
       buttonBG_light = "#669999",
-      buttonBG_dark = "#660000",
+      buttonBG_dark = "#800000",
       buttonTXT_light = "#fff",
       buttonTXT_dark = "#fff",
       heart_light = "#fff",
-      heart_dark =  "#cc0000",
+      heart_dark =  "#f7b733",
       text_light = "#fff",
       text_dark = "#fff",
       backgroundGrad_light = ['#F2994A', '#F2C94C'],
       backgroundGrad_dark = ['#1a1a1a','#1a1a1a'],
       noteIcon_light = "#334d4d",
-      noteIcon_dark = "#1a0000",
-      listItem_light = "#66999980",
-      listItem_dark = "#1a0000",
+      noteIcon_dark = "#fff",
+      //start player
       playerBG_light = "#669999",
-      playerBG_dark = "#000",
+      playerBG_dark = "#3d3d5c",
       playPause_light = "#fff",
-      playPause_dark = "#cc0000",
+      playPause_dark = "#f7b733",
       playIcon_light = "#fff",
       playIcon_dark = "#fff",
       spinner_light = "#fff",
+      //end player
       spinner_dark = "#fff";
 
 export default {

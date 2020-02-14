@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, AsyncStorage, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, AsyncStorage, View, StyleSheet, BackHandler  } from 'react-native';
 import { WebView } from 'react-native-webview';
 import {connect} from 'react-redux'
 import makeReq from '../../apis/request';
@@ -12,6 +12,13 @@ export let ID;
 const SpotWebViewScreen = (props) => {
 
     const [loading, setLoading] = React.useState(true)
+
+
+    BackHandler.addEventListener('hardwareBackPress', function() {
+        // hardware back button
+        // allows going back if wrong authentication method is chosen
+        props.navigation.navigate('Auth');
+    });
 
     SPYloginTrue = async (e) => {
 

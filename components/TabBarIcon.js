@@ -23,7 +23,7 @@ export default function TabBarIcon(props) {
       size={26}
       style={{ marginBottom: -3 }}
       color={
-        props.focused && theme === "dark" ? "#cc0000" : props.focused && theme === "light" ? "#F2C94C" : "#fff"
+        props.focused && theme === "dark" ? "#f7b733" : props.focused && theme === "light" ? "#F2C94C" : "#fff"
       }
     />
   );
